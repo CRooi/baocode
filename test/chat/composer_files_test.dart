@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:baocode/chat/chat_display_settings.dart';
 import 'package:baocode/chat/chat_models.dart';
 import 'package:baocode/chat/chat_screen.dart';
 import 'package:baocode/chat/chat_session.dart';
@@ -451,6 +452,26 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('```', findRichText: true), findsNothing);
+    session.stop();
+    await tester.pump(const Duration(seconds: 5));
+  }, variant: _macOS);
+
+  testWidgets('code copied from the IDE pastes as its text with the tag '
+      'turned off', (tester) async {
+    final session = await _pump(tester);
+    addTearDown(CopiedCode.clear);
+    PasteCodeAsTag.current.value = false;
+    addTearDown(() => PasteCodeAsTag.current.value = true);
+    const code = 'a();';
+    CopiedCode.record(
+      path: '$_root/lib/main.dart',
+      start: 3,
+      end: 3,
+      code: code,
+    );
+    _clipboardText(tester, code);
+    await _paste(tester);
+    expect(_content(tester), 'a();');
     session.stop();
     await tester.pump(const Duration(seconds: 5));
   }, variant: _macOS);

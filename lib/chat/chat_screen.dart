@@ -28,6 +28,7 @@ import '../workspace/title_bar_double_click.dart';
 import '../workspace/window_controls.dart';
 import 'agent_view.dart';
 import 'chat_column.dart';
+import 'chat_display_settings.dart';
 import 'chat_feed.dart';
 import 'chat_history_view.dart';
 import 'chat_keys.dart';
@@ -709,7 +710,9 @@ class _ChatScreenState extends State<ChatScreen>
 
   Widget? _buildActivityStrip() {
     final tasks = _session.tasks ?? const [];
-    final changes = _session.fileChanges;
+    final changes = ShowChangedFiles.current.value
+        ? _session.fileChanges
+        : const <FileChange>[];
     if (!ActivityStrip.hasContent(tasks, changes)) return null;
     final links = widget.fileLinks;
     final open = links == null
@@ -1348,7 +1351,11 @@ class _ChatScreenState extends State<ChatScreen>
             _ => null,
           },
         ),
-        _PanelSlot(gap: 0, child: _buildActivityStrip()),
+        ListenableBuilder(
+          listenable: ShowChangedFiles.current,
+          builder: (context, _) =>
+              _PanelSlot(gap: 0, child: _buildActivityStrip()),
+        ),
         ChatComposer(
           key: _composerKey,
           session: _session,
