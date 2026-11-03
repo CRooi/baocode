@@ -17,6 +17,7 @@ abstract final class CodeFont {
   static const ligaturesSettingKey = 'editor.fontLigatures';
   static const uiScaleSettingKey = 'window.uiScale';
   static const terminalSizeSettingKey = 'terminal.integrated.fontSize';
+  static const terminalFamilySettingKey = 'terminal.integrated.fontFamily';
 
   /// The stack code is drawn in unless the setting names one. The first
   /// family installed is used, and the rest are what it falls back on (see
@@ -93,6 +94,28 @@ abstract final class CodeFont {
   /// The size the terminal draws its text at; null (the default) for the
   /// window's text size, as [uiScale] moves it.
   static final ValueNotifier<double?> terminalSize = ValueNotifier(null);
+
+  /// The families the terminal draws its text in; null (the default) for
+  /// [families], the code's.
+  static final ValueNotifier<List<String>?> terminalFamilies = ValueNotifier(
+    null,
+  );
+
+  /// The families the terminal draws in: its own, else the code's.
+  static List<String> get terminalFamiliesShown =>
+      terminalFamilies.value ?? families.value;
+
+  /// [value] as settings.json has it, as [parseFamilies] reads it; null (the
+  /// code's families) when it names none.
+  static List<String>? parseTerminalFamilies(Object? value) {
+    final parsed = parseFamilies(value);
+    return identical(parsed, defaultFamilies) ? null : parsed;
+  }
+
+  /// [families] as settings.json keeps it; null (not written) for the
+  /// code's.
+  static String? terminalFamiliesSetting(List<String>? families) =>
+      families?.join(', ');
 
   /// [value] as settings.json has it: a family list, comma-separated or as
   /// an array; quotes and blanks are dropped, and none left is the default.
@@ -186,6 +209,10 @@ abstract final class CodeFont {
       ligatures.value = parseLigatures(read(ligaturesSettingKey));
       uiScale.value = parseUiScale(read(uiScaleSettingKey));
       terminalSize.value = parseTerminalSize(read(terminalSizeSettingKey));
+      final terminal = parseTerminalFamilies(read(terminalFamilySettingKey));
+      if (!listEquals(terminal, terminalFamilies.value)) {
+        terminalFamilies.value = terminal;
+      }
     }
 
     update();

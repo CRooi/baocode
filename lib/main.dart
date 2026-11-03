@@ -611,6 +611,10 @@ void followSettingsFiles(SettingsFiles files) {
     files.settings,
     () => files.settings[ExpandThinking.settingKey],
   );
+  ChatFontSize.follow(
+    files.settings,
+    () => files.settings[ChatFontSize.settingKey],
+  );
   ShowChangedFiles.follow(
     files.settings,
     () => files.settings[ShowChangedFiles.settingKey],
@@ -856,6 +860,8 @@ class _BaoCodeAppState extends State<BaoCodeApp> {
     CodeFont.families,
     CodeFont.size,
     CodeFont.ligatures,
+    // The conversation's text size, read as its messages build.
+    ChatFontSize.current,
     WindowBlur.enabled,
   ]);
 

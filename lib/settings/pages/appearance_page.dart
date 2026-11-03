@@ -364,6 +364,11 @@ class AppearanceSettingsPage extends StatelessWidget {
     _keep(CodeFont.familySettingKey, CodeFont.familiesSetting(families));
   }
 
+  void _selectChatFontSize(double size) {
+    ChatFontSize.current.value = size;
+    _keep(ChatFontSize.settingKey, ChatFontSize.setting(size));
+  }
+
   void _selectSize(double size) {
     CodeFont.size.value = size;
     _keep(CodeFont.sizeSettingKey, CodeFont.sizeSetting(size));
@@ -373,6 +378,23 @@ class AppearanceSettingsPage extends StatelessWidget {
     CodeFont.ligatures.value = on;
     _keep(CodeFont.ligaturesSettingKey, CodeFont.ligaturesSetting(on));
   }
+
+  void _selectTerminalFamilies(List<String>? families) {
+    CodeFont.terminalFamilies.value = families;
+    _keep(
+      CodeFont.terminalFamilySettingKey,
+      CodeFont.terminalFamiliesSetting(families),
+    );
+  }
+
+  /// The terminal font dropdown's text for [families]: Follow the code
+  /// font when it has none of its own, else as [_familyName] has it.
+  static String _terminalFamilyName(
+    BuildContext context,
+    List<String>? families,
+  ) => families == null
+      ? context.l10n.appearanceSettingsTerminalFontFollow
+      : _familyName(context, families);
 
   void _selectTerminalSize(double? size) {
     CodeFont.terminalSize.value = size;
@@ -406,6 +428,7 @@ class AppearanceSettingsPage extends StatelessWidget {
         MusingsLanguage.current,
         FoldLongMessages.current,
         ExpandThinking.current,
+        ChatFontSize.current,
         ShowChangedFiles.current,
         PasteCodeAsTag.current,
         ChatMinimap.enabled,
@@ -419,12 +442,18 @@ class AppearanceSettingsPage extends StatelessWidget {
         CodeFont.ligatures,
         CodeFont.uiScale,
         CodeFont.terminalSize,
+        CodeFont.terminalFamilies,
         EditorWordWrap.on,
         EditorMinimap.on,
       ]),
       builder: (context, _) {
         final widthStep = ChatWidth.stepOf(ChatWidth.current.value);
         final widthShown = widthName(context, ChatWidth.steps[widthStep]);
+        final chatFontSize = ChatFontSize.current.value;
+        // 13.5 as written, 14 without its ".0".
+        final chatFontSizeShown = chatFontSize == chatFontSize.roundToDouble()
+            ? '${chatFontSize.round()}'
+            : '$chatFontSize';
         final styleShown = _styleName(context, UserMessageStyle.current.value);
         final editDetailShown = _editDetailName(
           context,
@@ -449,6 +478,11 @@ class AppearanceSettingsPage extends StatelessWidget {
         final sizeShown = '${CodeFont.size.value.round()}';
         final uiScaleStep = CodeFont.uiScale.value - CodeFont.minUiScale;
         final uiScaleShown = '${CodeFont.uiScale.value}';
+        final terminalFamilies = CodeFont.terminalFamilies.value;
+        final terminalFamilyShown = _terminalFamilyName(
+          context,
+          terminalFamilies,
+        );
         final terminalSize = CodeFont.terminalSize.value;
         final terminalSizeShown = terminalSize == null
             ? l10n.appearanceSettingsTerminalSizeFollow
@@ -504,6 +538,20 @@ class AppearanceSettingsPage extends StatelessWidget {
                     ),
                     onChanged: (step) => _selectWidth(ChatWidth.steps[step]),
                     tapOnly: true,
+                  ),
+                ),
+                SettingsRow(
+                  label: l10n.appearanceSettingsChatFontSize,
+                  description: l10n.appearanceSettingsChatFontSizeDescription,
+                  trailing: SettingsSlider(
+                    step: ChatFontSize.stepOf(ChatFontSize.current.value),
+                    count: ChatFontSize.steps.length,
+                    label: chatFontSizeShown,
+                    semanticLabel: l10n.appearanceSettingsChatFontSizeLabel(
+                      chatFontSizeShown,
+                    ),
+                    onChanged: (step) =>
+                        _selectChatFontSize(ChatFontSize.steps[step]),
                   ),
                 ),
                 SettingsRow(
@@ -812,6 +860,46 @@ class AppearanceSettingsPage extends StatelessWidget {
                   ),
                 ),
                 SettingsRow(
+                  label: l10n.appearanceSettingsTerminalFont,
+                  description: l10n.appearanceSettingsTerminalFontDescription,
+                  below: [
+                    SettingsTextField(
+                      value: terminalFamilies?.join(', ') ?? '',
+                      hint: families.join(', '),
+                      semanticLabel: l10n.appearanceSettingsTerminalFontField,
+                      width: 360,
+                      onSubmitted: (text) => _selectTerminalFamilies(
+                        CodeFont.parseTerminalFamilies(text),
+                      ),
+                    ),
+                  ],
+                  trailing: SettingsDropdown(
+                    current: terminalFamilyShown,
+                    width: 220,
+                    semanticLabel: l10n.appearanceSettingsTerminalFontLabel(
+                      terminalFamilyShown,
+                    ),
+                    entries: () => ideMenuGroups([
+                      [
+                        IdeMenuAction(
+                          l10n.appearanceSettingsTerminalFontFollow,
+                          checked: terminalFamilies == null,
+                          onSelected: () => _selectTerminalFamilies(null),
+                        ),
+                        for (final name in _codeFontPresets)
+                          IdeMenuAction(
+                            name,
+                            checked:
+                                terminalFamilies != null &&
+                                listEquals(terminalFamilies, _presetOf(name)),
+                            onSelected: () =>
+                                _selectTerminalFamilies(_presetOf(name)),
+                          ),
+                      ],
+                    ]),
+                  ),
+                ),
+                SettingsRow(
                   label: l10n.appearanceSettingsTerminalSize,
                   description: l10n.appearanceSettingsTerminalSizeDescription,
                   trailing: SettingsDropdown(
@@ -878,11 +966,13 @@ class _TerminalFontPreview extends StatelessWidget {
       listenable: Listenable.merge([
         terminalColorTheme,
         CodeFont.families,
+        CodeFont.terminalFamilies,
         CodeFont.terminalSize,
       ]),
       builder: (context, _) {
         final colors = terminalColorTheme.value;
         final ansi = colors.ansi;
+        final families = CodeFont.terminalFamiliesShown;
         // Scaled here as the terminal scales it, so not again by the text.
         final size = vscodeTerminalFontSize(
           MediaQuery.textScalerOf(context),
@@ -925,8 +1015,11 @@ class _TerminalFontPreview extends StatelessWidget {
               textScaler: TextScaler.noScaling,
               style: TextStyle(
                 color: colors.foreground,
-                fontFamily: AppFonts.mono,
-                fontFamilyFallback: AppFonts.monoFallbacks,
+                fontFamily: families.first,
+                fontFamilyFallback: [
+                  ...families.skip(1),
+                  ...AppFonts.monoFallbacks,
+                ],
                 fontSize: size,
                 height: 1.2,
                 // The terminal draws a cell at a time: no ligatures.

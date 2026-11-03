@@ -5415,6 +5415,16 @@
       }
     }
   },
+  "appearanceSettingsChatFontSize": "Conversation Font Size",
+  "appearanceSettingsChatFontSizeDescription": "The size of the text in the model's replies and your messages.",
+  "appearanceSettingsChatFontSizeLabel": "Conversation font size: {size}",
+  "@appearanceSettingsChatFontSizeLabel": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "appearanceSettingsAgentLoader": "Agent Working",
   "appearanceSettingsAgentLoaderDescription": "Beside an agent in the sidebar, tabs and search while it works, or while something it started still runs in the background.",
   "appearanceSettingsSubagentLoader": "Subagent Running",
@@ -5584,6 +5594,18 @@
   "@appearanceSettingsUiScaleLabel": {
     "placeholders": {
       "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "appearanceSettingsTerminalFont": "Terminal Font",
+  "appearanceSettingsTerminalFontDescription": "The font of terminal text. By default it follows the code font; it can be set on its own.",
+  "appearanceSettingsTerminalFontFollow": "Follow Code Font",
+  "appearanceSettingsTerminalFontField": "Terminal font families",
+  "appearanceSettingsTerminalFontLabel": "Terminal font: {font}",
+  "@appearanceSettingsTerminalFontLabel": {
+    "placeholders": {
+      "font": {
         "type": "String"
       }
     }

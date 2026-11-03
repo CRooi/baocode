@@ -11,6 +11,26 @@ void main() {
     CodeFont.ligatures.value = true;
     CodeFont.uiScale.value = CodeFont.defaultUiScale;
     CodeFont.terminalSize.value = null;
+    CodeFont.terminalFamilies.value = null;
+  });
+
+  test('the terminal font follows the code font unless it names its own', () {
+    expect(CodeFont.parseTerminalFamilies(null), isNull);
+    expect(CodeFont.parseTerminalFamilies(' , '), isNull);
+    expect(CodeFont.parseTerminalFamilies('Monaco, Menlo'), [
+      'Monaco',
+      'Menlo',
+    ]);
+    expect(CodeFont.terminalFamiliesSetting(null), isNull);
+    expect(
+      CodeFont.terminalFamiliesSetting(['Monaco', 'Menlo']),
+      'Monaco, Menlo',
+    );
+
+    CodeFont.families.value = ['Iosevka'];
+    expect(vscodeTerminalFontFamily(), startsWith('Iosevka, '));
+    CodeFont.terminalFamilies.value = ['SF Mono', 'Menlo'];
+    expect(vscodeTerminalFontFamily(), startsWith("'SF Mono', Menlo, "));
   });
 
   test('a family list: comma-separated or an array, quotes and blanks '
@@ -126,7 +146,9 @@ void main() {
     values[CodeFont.ligaturesSettingKey] = false;
     values[CodeFont.uiScaleSettingKey] = 150;
     values[CodeFont.terminalSizeSettingKey] = 15;
+    values[CodeFont.terminalFamilySettingKey] = 'Monaco';
     settings.value++;
+    expect(CodeFont.terminalFamilies.value, ['Monaco']);
     expect(CodeFont.families.value, ['Iosevka']);
     expect(CodeFont.size.value, 18);
     expect(CodeFont.ligatures.value, isFalse);

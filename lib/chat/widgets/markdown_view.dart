@@ -9,6 +9,7 @@ import '../../theme/codicons.dart';
 import '../../theme/material_file_icons.dart';
 import '../../theme/workbench_theme.dart' show WorkbenchThemeScope, themeColors;
 import '../../workspace/editor_launcher.dart';
+import '../chat_display_settings.dart';
 import '../side_panel/file_link.dart';
 import '../side_panel/file_link_menu.dart';
 import '../composer/composer_embeds.dart' show FileImageChip;
@@ -38,11 +39,16 @@ class MarkdownView extends StatefulWidget {
   final TextStyle? style;
 
   static TextStyle get baseStyle =>
-      TextStyle(color: AppColors.text, fontSize: 13.5, height: 1.6);
+      TextStyle(
+        color: AppColors.text,
+        fontSize: ChatFontSize.current.value,
+        height: 1.6,
+      );
 
   /// Inline code's, its background painted by [InlineCodeText].
-  static TextStyle get codeStyle =>
-      AppFonts.uiCodeStyle(12.5).copyWith(color: AppColors.inlineCode);
+  static TextStyle get codeStyle => AppFonts.uiCodeStyle(
+    12.5 * ChatFontSize.scale,
+  ).copyWith(color: AppColors.inlineCode);
 
   /// The block syntaxes of its own, before GFM's: code citations and TeX.
   static const blockSyntaxes = <md.BlockSyntax>[
@@ -616,7 +622,8 @@ Widget? _block(md.Node node, TextStyle style, MarkdownOptions options) {
             node.children ?? const [],
             style.copyWith(
               color: AppColors.textPrimary,
-              fontSize: options.headingSizes[level - 1],
+              // With the conversation's text, larger or smaller.
+              fontSize: options.headingSizes[level - 1] * ChatFontSize.scale,
               fontWeight: FontWeight.w600,
               height: 1.4,
             ),

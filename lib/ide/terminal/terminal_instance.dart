@@ -210,6 +210,7 @@ class TerminalInstance extends ChangeNotifier {
     );
     _colorTheme.addListener(_updateTheme);
     CodeFont.families.addListener(_updateFont);
+    CodeFont.terminalFamilies.addListener(_updateFont);
     source = TerminalCoreSource(terminal, decorationService: decorations);
     clipboard = TerminalClipboard(
       selection: selection,
@@ -830,6 +831,7 @@ class TerminalInstance extends ChangeNotifier {
     _disposed = true;
     _colorTheme.removeListener(_updateTheme);
     CodeFont.families.removeListener(_updateFont);
+    CodeFont.terminalFamilies.removeListener(_updateFont);
     if (!_exited) _pty?.kill();
     unawaited(_printing?.cancel());
     unawaited(_output.close());

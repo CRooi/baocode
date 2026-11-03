@@ -7609,6 +7609,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get appearanceSettingsChatFontSize => 'Conversation Font Size';
+
+  @override
+  String get appearanceSettingsChatFontSizeDescription =>
+      'The size of the text in the model\'s replies and your messages.';
+
+  @override
+  String appearanceSettingsChatFontSizeLabel(String size) {
+    return 'Conversation font size: $size';
+  }
+
+  @override
   String get appearanceSettingsAgentLoader => 'Agent Working';
 
   @override
@@ -7912,6 +7924,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String appearanceSettingsUiScaleLabel(String percent) {
     return 'Interface size: $percent%';
+  }
+
+  @override
+  String get appearanceSettingsTerminalFont => 'Terminal Font';
+
+  @override
+  String get appearanceSettingsTerminalFontDescription =>
+      'The font of terminal text. By default it follows the code font; it can be set on its own.';
+
+  @override
+  String get appearanceSettingsTerminalFontFollow => 'Follow Code Font';
+
+  @override
+  String get appearanceSettingsTerminalFontField => 'Terminal font families';
+
+  @override
+  String appearanceSettingsTerminalFontLabel(String font) {
+    return 'Terminal font: $font';
   }
 
   @override

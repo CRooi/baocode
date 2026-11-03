@@ -93,6 +93,11 @@ List<SettingsEntry> settingsEntries(AppLocalizations l10n) {
     ),
     entry(
       appearance,
+      l10n.appearanceSettingsChatFontSize,
+      l10n.appearanceSettingsChatFontSizeDescription,
+    ),
+    entry(
+      appearance,
       l10n.appearanceSettingsUserMessageStyle,
       l10n.appearanceSettingsUserMessageStyleDescription,
     ),
@@ -181,6 +186,11 @@ List<SettingsEntry> settingsEntries(AppLocalizations l10n) {
       appearance,
       l10n.appearanceSettingsCodeMinimap,
       l10n.appearanceSettingsCodeMinimapDescription,
+    ),
+    entry(
+      appearance,
+      l10n.appearanceSettingsTerminalFont,
+      l10n.appearanceSettingsTerminalFontDescription,
     ),
     entry(
       appearance,

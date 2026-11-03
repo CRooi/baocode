@@ -317,4 +317,14 @@ void main() {
     CodeFont.families.value = ['Iosevka', 'Menlo'];
     expect(terminal.xterm.options.fontFamily, startsWith('Iosevka, Menlo, '));
   });
+
+  test('the terminal draws in its own font once one is set', () {
+    addTearDown(() => CodeFont.terminalFamilies.value = null);
+    final (:terminal, started: _, exits: _) = _start();
+    final followed = terminal.xterm.options.fontFamily;
+    CodeFont.terminalFamilies.value = ['Monaco'];
+    expect(terminal.xterm.options.fontFamily, startsWith('Monaco, '));
+    CodeFont.terminalFamilies.value = null;
+    expect(terminal.xterm.options.fontFamily, followed);
+  });
 }

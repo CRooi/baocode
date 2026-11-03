@@ -7140,6 +7140,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get appearanceSettingsChatFontSize => '正文字号';
+
+  @override
+  String get appearanceSettingsChatFontSizeDescription => '模型回复和你发送的消息的文字大小。';
+
+  @override
+  String appearanceSettingsChatFontSizeLabel(String size) {
+    return '正文字号：$size';
+  }
+
+  @override
   String get appearanceSettingsAgentLoader => '智能体加载中';
 
   @override
@@ -7441,6 +7452,24 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String appearanceSettingsUiScaleLabel(String percent) {
     return '界面大小：$percent%';
+  }
+
+  @override
+  String get appearanceSettingsTerminalFont => '终端字体';
+
+  @override
+  String get appearanceSettingsTerminalFontDescription =>
+      '终端文字的字体。默认跟随代码字体，也可单独设定。';
+
+  @override
+  String get appearanceSettingsTerminalFontFollow => '跟随代码字体';
+
+  @override
+  String get appearanceSettingsTerminalFontField => '终端字体名';
+
+  @override
+  String appearanceSettingsTerminalFontLabel(String font) {
+    return '终端字体：$font';
   }
 
   @override

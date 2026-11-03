@@ -12321,6 +12321,24 @@ abstract class AppLocalizations {
   /// **'Conversation width: {width}'**
   String appearanceSettingsChatWidthLabel(String width);
 
+  /// No description provided for @appearanceSettingsChatFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation Font Size'**
+  String get appearanceSettingsChatFontSize;
+
+  /// No description provided for @appearanceSettingsChatFontSizeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The size of the text in the model\'s replies and your messages.'**
+  String get appearanceSettingsChatFontSizeDescription;
+
+  /// No description provided for @appearanceSettingsChatFontSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation font size: {size}'**
+  String appearanceSettingsChatFontSizeLabel(String size);
+
   /// No description provided for @appearanceSettingsAgentLoader.
   ///
   /// In en, this message translates to:
@@ -12842,6 +12860,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Interface size: {percent}%'**
   String appearanceSettingsUiScaleLabel(String percent);
+
+  /// No description provided for @appearanceSettingsTerminalFont.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal Font'**
+  String get appearanceSettingsTerminalFont;
+
+  /// No description provided for @appearanceSettingsTerminalFontDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The font of terminal text. By default it follows the code font; it can be set on its own.'**
+  String get appearanceSettingsTerminalFontDescription;
+
+  /// No description provided for @appearanceSettingsTerminalFontFollow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow Code Font'**
+  String get appearanceSettingsTerminalFontFollow;
+
+  /// No description provided for @appearanceSettingsTerminalFontField.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal font families'**
+  String get appearanceSettingsTerminalFontField;
+
+  /// No description provided for @appearanceSettingsTerminalFontLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal font: {font}'**
+  String appearanceSettingsTerminalFontLabel(String font);
 
   /// No description provided for @appearanceSettingsTerminalSize.
   ///

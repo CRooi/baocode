@@ -100,6 +100,46 @@ abstract final class PasteCodeAsTag {
   }
 }
 
+/// The size of a conversation's text: the model's replies and the user's
+/// messages. settings.json's `chat.fontSize`; unset, [defaultSize].
+abstract final class ChatFontSize {
+  static const settingKey = 'chat.fontSize';
+
+  static const defaultSize = 13.5;
+
+  static const steps = <double>[12, 12.5, 13, 13.5, 14, 14.5, 15, 16, 17, 18];
+
+  static double parse(Object? value) => switch (value) {
+    final num size when size >= steps.first && size <= steps.last =>
+      size.toDouble(),
+    _ => defaultSize,
+  };
+
+  /// As settings.json keeps it; null (not written) for [defaultSize].
+  static Object? setting(double size) => size == defaultSize ? null : size;
+
+  /// The step nearest [size].
+  static int stepOf(double size) {
+    var best = 0;
+    for (var i = 1; i < steps.length; i++) {
+      if ((steps[i] - size).abs() < (steps[best] - size).abs()) best = i;
+    }
+    return best;
+  }
+
+  static final ValueNotifier<double> current = ValueNotifier(defaultSize);
+
+  /// [current] over [defaultSize]: what the sizes made for the default
+  /// (headings, inline code) are scaled by.
+  static double get scale => current.value / defaultSize;
+
+  static void follow(Listenable changes, Object? Function() read) {
+    void update() => current.value = parse(read());
+    update();
+    changes.addListener(update);
+  }
+}
+
 /// Whether the model's thoughts show open, as they stream and once done,
 /// until closed by hand; else closed, while they stream too, until opened.
 /// settings.json's `chat.expandThinking`; unset, off.

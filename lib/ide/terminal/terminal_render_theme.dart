@@ -415,14 +415,15 @@ int argbOfRgba(int rgba) => ((rgba & 0xFF) << 24 | (rgba >>> 8)) & 0xFFFFFFFF;
 ITheme vscodeTerminalTheme([TerminalColorTheme? theme]) =>
     (theme ?? terminalColorTheme.value).toXtermTheme();
 
-/// The terminal font, as VS Code's `getFont` resolves it without a
-/// `terminal.integrated.fontFamily`: the editor's families (this app's
-/// editor draws in [CodeFont.families]), then `monospace` and, on macOS,
+/// The terminal font, as VS Code's `getFont` resolves it: the
+/// `terminal.integrated.fontFamily` families, or without one the editor's
+/// (this app's editor draws in [CodeFont.families]; see
+/// [CodeFont.terminalFamiliesShown]), then `monospace` and, on macOS,
 /// AppleBraille. On Windows the app's fallbacks ([AppFonts.windowsFallbacks],
 /// ending in `monospace`) follow them as the theme puts them.
 String vscodeTerminalFontFamily() {
   final families = [
-    ...CodeFont.families.value,
+    ...CodeFont.terminalFamiliesShown,
     if (AppPlatform.isWindows) ...AppFonts.windowsFallbacks else 'monospace',
     if (AppPlatform.isMacOS) 'AppleBraille',
   ];
