@@ -106,6 +106,32 @@ void main() {
     expect(controller.text, '[] ');
   });
 
+  testWidgets(
+    'a new conversation and one going on have their own placeholder',
+    (tester) async {
+      Future<void> pump(int historyCount) async {
+        final session = ChatSession(historyCount: historyCount);
+        addTearDown(session.dispose);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            home: Scaffold(
+              body: ChatComposer(session: session, draft: session.draft),
+            ),
+          ),
+        );
+        await tester.pump();
+      }
+
+      await pump(0);
+      expect(find.text('Plan, search, build anything'), findsOneWidget);
+      expect(find.textContaining('drop or paste'), findsNothing);
+      await pump(4);
+      expect(find.text('Drop or paste files / for commands'), findsOneWidget);
+      expect(find.textContaining('Plan, search'), findsNothing);
+    },
+  );
+
   testWidgets('a list item shows its number apart, its text after it', (
     tester,
   ) async {

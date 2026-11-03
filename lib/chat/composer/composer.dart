@@ -697,6 +697,9 @@ class ChatComposerState extends State<ChatComposer>
   /// [_shownOfText] when the box was last built.
   _ShownOfText? _shownBuilt;
 
+  /// Whether [_editor] was built for a new conversation's placeholder.
+  bool? _builtForNew;
+
   /// The color theme's colors [_editor] was built with.
   WorkbenchColors? _editorColors;
 
@@ -1628,6 +1631,11 @@ class ChatComposerState extends State<ChatComposer>
       _suggestion = suggestion;
       _editor = null; // The placeholder shows it.
     }
+    final isNew = _isNewConversation;
+    if (isNew != _builtForNew) {
+      _builtForNew = isNew;
+      _editor = null; // Its placeholder is a new conversation's or not.
+    }
     final colors = themeColors;
     if (!identical(colors, _editorColors)) {
       _editorColors = colors;
@@ -2021,8 +2029,13 @@ class ChatComposerState extends State<ChatComposer>
         shrinkWrap: true,
         embeds: const ComposerChips(),
         // A suggested prompt, on one line.
-        placeholder: (_suggestion ?? context.l10n.composerPlaceholder)
-            .replaceAll(RegExp(r'[\x00-\x1f]+'), ' '),
+        placeholder:
+            (_suggestion ??
+                    // A new conversation's, else one going on's.
+                    (_isNewConversation
+                        ? context.l10n.composerPlaceholder
+                        : context.l10n.composerPlaceholderContinue))
+                .replaceAll(RegExp(r'[\x00-\x1f]+'), ' '),
         onKey: _handleKey,
         onPaste: _paste,
         onPasteCopy: (markdown) =>
@@ -2127,6 +2140,14 @@ class ChatComposerState extends State<ChatComposer>
         ),
       ),
     );
+  }
+
+  /// Nothing in the conversation yet, nor any to load.
+  bool get _isNewConversation {
+    final session = widget.session;
+    return session.itemCount == 0 &&
+        !session.loadingHistory &&
+        !session.hasEarlierHistory;
   }
 
   /// The most used of the account's limits (its five-hour and weekly
@@ -2338,13 +2359,14 @@ class _ContextRing extends StatelessWidget {
                   painter: _RingPainter(
                     value,
                     track: colors['disabledForeground'],
-                    arc: colors[!limit
-                        ? 'icon.foreground'
-                        : fraction >= 0.9
-                        ? 'editorError.foreground'
-                        : fraction >= 0.7
-                        ? 'editorWarning.foreground'
-                        : 'icon.foreground'],
+                    arc:
+                        colors[!limit
+                            ? 'icon.foreground'
+                            : fraction >= 0.9
+                            ? 'editorError.foreground'
+                            : fraction >= 0.7
+                            ? 'editorWarning.foreground'
+                            : 'icon.foreground'],
                   ),
                 ),
               ),

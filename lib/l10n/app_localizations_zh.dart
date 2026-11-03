@@ -2749,7 +2749,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get composerMentions => '文件和对话';
 
   @override
-  String get composerPlaceholder => '规划、搜索、构建任何内容  ·  拖入或粘贴文件  / 命令';
+  String get composerPlaceholder => '规划、搜索、构建任何内容';
+
+  @override
+  String get composerPlaceholderContinue => '拖入或粘贴文件 / 命令';
 
   @override
   String composerApprovalTitle(String agent) {

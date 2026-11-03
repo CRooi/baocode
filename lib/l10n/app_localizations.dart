@@ -4952,11 +4952,17 @@ abstract class AppLocalizations {
   /// **'Files and conversations'**
   String get composerMentions;
 
-  /// No description provided for @composerPlaceholder.
+  /// Placeholder of the composer in a new conversation.
   ///
   /// In en, this message translates to:
-  /// **'Plan, search, build anything  ·  drop or paste files  / for commands'**
+  /// **'Plan, search, build anything'**
   String get composerPlaceholder;
+
+  /// Placeholder of the composer in a conversation with messages already.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop or paste files / for commands'**
+  String get composerPlaceholderContinue;
 
   /// No description provided for @composerApprovalTitle.
   ///
