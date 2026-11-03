@@ -967,7 +967,10 @@ class _MessageShape extends OutlinedBorder {
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
     if (side.style == BorderStyle.none) return;
-    canvas.drawPath(_path(rect.deflate(side.width / 2)), side.toPaint());
+    canvas.drawPath(
+      _path(rect.deflate(side.width / 2), tail: tail),
+      side.toPaint(),
+    );
   }
 
   @override
