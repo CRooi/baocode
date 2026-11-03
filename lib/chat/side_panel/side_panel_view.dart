@@ -88,6 +88,7 @@ class AgentSidePanelArea extends StatefulWidget {
     this.rail,
     this.railTop = AppMetrics.titleBarHeight + 4,
     this.hidden = false,
+    this.roomComing = false,
     this.conversation,
     required this.child,
   });
@@ -113,6 +114,11 @@ class AgentSidePanelArea extends StatefulWidget {
   /// Whether it gave way to the window's sidebar, though shown: the rail
   /// is there instead, to ask for it again.
   final bool hidden;
+
+  /// Whether its room is growing (the window's sidebar giving way to it):
+  /// short meanwhile, it waits to go over the conversations. Else it goes
+  /// over them at once, not beside them first.
+  final bool roomComing;
   final Widget child;
 
   /// The least the conversations keep beside it.
@@ -121,8 +127,9 @@ class AgentSidePanelArea extends StatefulWidget {
   /// The strip at its left edge that takes the drag.
   static const sashWidth = 5.0;
 
-  /// How long the room is short before it goes over the conversations:
-  /// longer than the window's sidebar takes to give way.
+  /// How long the room is short before it goes over the conversations,
+  /// while it is coming ([roomComing]) or the window opens: longer than
+  /// the window's sidebar takes to give way.
   static const overlayDelay = Duration(milliseconds: 260);
 
   /// How far in from the right [rail] is: clear of the history's
@@ -150,6 +157,10 @@ class _AgentSidePanelAreaState extends State<AgentSidePanelArea> {
   /// Runs while the room is short: over them once it ends.
   Timer? _short;
 
+  /// Runs a while from when it was built: a window opening gets its size
+  /// meanwhile.
+  Timer? _young;
+
   void _roomShort(bool short) {
     if (!short) {
       _short?.cancel();
@@ -158,6 +169,11 @@ class _AgentSidePanelAreaState extends State<AgentSidePanelArea> {
       return;
     }
     if (_overlay || _short != null) return;
+    // Short for good: over them at once, not beside them for a moment.
+    if (!widget.roomComing && _young == null) {
+      _overlay = true;
+      return;
+    }
     _short = Timer(AgentSidePanelArea.overlayDelay, () {
       _short = null;
       if (mounted) setState(() => _overlay = true);
@@ -165,8 +181,15 @@ class _AgentSidePanelAreaState extends State<AgentSidePanelArea> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _young = Timer(AgentSidePanelArea.overlayDelay, () => _young = null);
+  }
+
+  @override
   void dispose() {
     _short?.cancel();
+    _young?.cancel();
     super.dispose();
   }
 
