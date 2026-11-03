@@ -823,6 +823,7 @@ void main() {
     expect(rowOf(a1).selected, isFalse);
     expect(rowOf(a2).selected, isTrue);
 
+    // A new one is not listed until it is sent something: no row selected.
     final created = workspace.create(project: workspace.selected.project);
     await tester.pumpAndSettle();
     expect(workspace.selected, same(created));
@@ -830,7 +831,7 @@ void main() {
     final rows = tester.widgetList<IdeListRow>(
       inSidebar(find.byType(IdeListRow)),
     );
-    expect(rows.where((row) => row.selected), hasLength(1));
+    expect(rows.where((row) => row.selected), isEmpty);
   });
 
   testWidgets('selected rows use the explorer colors as focus moves and '
@@ -1364,13 +1365,13 @@ void main() {
       KeptCatalog([for (var i = 1; i <= 7; i++) kept('a$i', '/tmp/a', i)]),
     );
     final group = Workspace.projectGroup('/tmp/a');
-    // The new agent and four more; pinned ones would not count.
-    expect(inSidebar(find.text('New Chat')), findsNWidgets(2));
-    expect(inSidebar(find.text('Chat a4')), findsOneWidget);
-    expect(inSidebar(find.text('Chat a5')), findsNothing);
-    expect(inSidebar(find.text('Show more (3)')), findsOneWidget);
+    // Five, the new agent not among them; pinned ones would not count.
+    expect(inSidebar(find.text('New Chat')), findsOneWidget);
+    expect(inSidebar(find.text('Chat a5')), findsOneWidget);
+    expect(inSidebar(find.text('Chat a6')), findsNothing);
+    expect(inSidebar(find.text('Show more (2)')), findsOneWidget);
 
-    await tester.tap(inSidebar(find.text('Show more (3)')));
+    await tester.tap(inSidebar(find.text('Show more (2)')));
     await tester.pump();
     expect(inSidebar(find.text('Chat a7')), findsOneWidget);
     expect(workspace.isExpanded(group), isTrue);
@@ -1406,25 +1407,35 @@ void main() {
     expect(inSidebar(find.text('Chat a1')), findsOneWidget);
   });
 
-  testWidgets('a new agent is listed only while it shows', (tester) async {
+  testWidgets('a new agent is listed only once it is sent something', (
+    tester,
+  ) async {
     final workspace = await pumpKept(
       tester,
       KeptCatalog([kept('a1', '/tmp/a', 1)]),
     );
     final created = workspace.selected;
     expect(created.untouched, isTrue);
-    expect(inSidebar(find.text('New Chat')), findsNWidgets(2));
+    // The New Chat button alone: no row for it.
+    expect(inSidebar(find.text('New Chat')), findsOneWidget);
 
     await tester.tap(inSidebar(find.text('Chat a1')));
     await tester.pump();
     expect(workspace.threads, contains(created));
     expect(inSidebar(find.text('New Chat')), findsOneWidget);
 
-    // Asked for again, it is the same one.
+    // Asked for again, it is the same one, still not listed.
     await tester.tap(inSidebar(find.text('New Chat')));
     await tester.pump();
     expect(workspace.selected, same(created));
-    expect(inSidebar(find.text('New Chat')), findsNWidgets(2));
+    expect(inSidebar(find.text('New Chat')), findsOneWidget);
+
+    // Sent something: listed.
+    created.session.send(const ComposerMessage(text: '第一条'));
+    await tester.pump();
+    expect(inSidebar(find.text('第一条')), findsOneWidget);
+    created.session.stop();
+    await tester.pump(const Duration(seconds: 1));
   });
 
   testWidgets('a project and an agent show what their rows have no room '

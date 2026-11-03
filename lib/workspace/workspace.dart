@@ -1221,12 +1221,13 @@ class Workspace extends ChangeNotifier implements ColorThemeStorage {
   }
 
   /// Whether the sidebar lists [thread]: not a new agent nothing was sent
-  /// to (but the one shown), nor one of a project not listed (the IDE's
-  /// folder's, until it is sent something).
+  /// to, shown or not (it joins the list with its first message), nor one
+  /// of a project not listed (the IDE's folder's, until it is sent
+  /// something).
   bool listsInSidebar(AgentThread thread) =>
       _projects.contains(thread.project) &&
       !isAppFolder(thread.project.path) &&
-      (!_isUntouched(thread) || _hasPane(thread));
+      !_isUntouched(thread);
 
   /// The sidebar's key for the group of [path]'s project.
   static String projectGroup(String path) => 'project:$path';
