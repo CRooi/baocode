@@ -123,6 +123,16 @@ List<SettingsEntry> settingsEntries(AppLocalizations l10n) {
     ),
     entry(
       appearance,
+      l10n.appearanceSettingsShowChangedFiles,
+      l10n.appearanceSettingsShowChangedFilesDescription,
+    ),
+    entry(
+      appearance,
+      l10n.appearanceSettingsPasteCodeAsTag,
+      l10n.appearanceSettingsPasteCodeAsTagDescription,
+    ),
+    entry(
+      appearance,
       l10n.appearanceSettingsSidebarTimes,
       l10n.appearanceSettingsSidebarTimesDescription,
     ),

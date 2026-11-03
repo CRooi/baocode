@@ -60,6 +60,46 @@ abstract final class FoldLongMessages {
   }
 }
 
+/// Whether the files the agent changed show above the composer, with
+/// Undo all and Keep all. settings.json's `chat.showChangedFiles`; unset,
+/// on.
+abstract final class ShowChangedFiles {
+  static const settingKey = 'chat.showChangedFiles';
+
+  static bool parse(Object? value) => value != false;
+
+  /// As settings.json keeps it; null (not written) when on.
+  static Object? setting(bool on) => on ? null : false;
+
+  static final ValueNotifier<bool> current = ValueNotifier(true);
+
+  static void follow(Listenable changes, Object? Function() read) {
+    void update() => current.value = parse(read());
+    update();
+    changes.addListener(update);
+  }
+}
+
+/// Whether code the IDE's editor copied goes into the composer as a tag
+/// of its lines; else as its text. settings.json's `chat.pasteCodeAsTag`;
+/// unset, on.
+abstract final class PasteCodeAsTag {
+  static const settingKey = 'chat.pasteCodeAsTag';
+
+  static bool parse(Object? value) => value != false;
+
+  /// As settings.json keeps it; null (not written) when on.
+  static Object? setting(bool on) => on ? null : false;
+
+  static final ValueNotifier<bool> current = ValueNotifier(true);
+
+  static void follow(Listenable changes, Object? Function() read) {
+    void update() => current.value = parse(read());
+    update();
+    changes.addListener(update);
+  }
+}
+
 /// Whether the model's thoughts show open, as they stream and once done,
 /// until closed by hand; else closed, while they stream too, until opened.
 /// settings.json's `chat.expandThinking`; unset, off.

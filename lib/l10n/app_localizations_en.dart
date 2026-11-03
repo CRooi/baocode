@@ -7778,6 +7778,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'The model\'s thinking shows open, until you close it. Off: it stays closed, while it is written too.';
 
   @override
+  String get appearanceSettingsShowChangedFiles => 'Show Changed Files';
+
+  @override
+  String get appearanceSettingsShowChangedFilesDescription =>
+      'Above the input, the files the model changed, to undo or keep all at once.';
+
+  @override
+  String get appearanceSettingsPasteCodeAsTag => 'Paste Code as a Reference';
+
+  @override
+  String get appearanceSettingsPasteCodeAsTagDescription =>
+      'Code copied from the editor goes into the input as a tag of its file and lines. Off: as its text.';
+
+  @override
   String get appearanceSettingsMinimap => 'Conversation Minimap';
 
   @override

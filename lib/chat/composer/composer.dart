@@ -14,6 +14,7 @@ import '../../keybindings/chat_keybindings.dart';
 import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/workbench_theme.dart' show WorkbenchColors, themeColors;
+import '../chat_display_settings.dart';
 import '../chat_keys.dart';
 import '../chat_models.dart';
 import '../chat_session.dart';
@@ -275,7 +276,7 @@ class ChatComposerState extends State<ChatComposer>
     }
     final text = await WindowControls.readPasteboardText();
     if (!mounted) return false;
-    if (text != null && !raw) {
+    if (text != null && !raw && PasteCodeAsTag.current.value) {
       if (CopiedCode.matching(text) case final code?) {
         _insertTags([
           ComposerCodeEmbed.of(

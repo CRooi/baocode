@@ -7307,6 +7307,20 @@ class AppLocalizationsZh extends AppLocalizations {
       '模型的思考内容默认展开，直到你手动收起。关闭时思考过程中也保持收起。';
 
   @override
+  String get appearanceSettingsShowChangedFiles => '显示已更改的文件';
+
+  @override
+  String get appearanceSettingsShowChangedFilesDescription =>
+      '在输入框上方列出模型改过的文件，可全部撤销或全部保留。';
+
+  @override
+  String get appearanceSettingsPasteCodeAsTag => '粘贴代码显示为引用';
+
+  @override
+  String get appearanceSettingsPasteCodeAsTagDescription =>
+      '从编辑器复制的代码粘贴到输入框时，显示为文件和行号的标签。关闭后粘贴原文。';
+
+  @override
   String get appearanceSettingsMinimap => '对话缩略图';
 
   @override

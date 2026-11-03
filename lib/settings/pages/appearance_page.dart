@@ -406,6 +406,8 @@ class AppearanceSettingsPage extends StatelessWidget {
         MusingsLanguage.current,
         FoldLongMessages.current,
         ExpandThinking.current,
+        ShowChangedFiles.current,
+        PasteCodeAsTag.current,
         ChatMinimap.enabled,
         ChatMinimap.glass,
         ChatMinimap.elasticity,
@@ -612,6 +614,31 @@ class AppearanceSettingsPage extends StatelessWidget {
                     _keep(
                       ExpandThinking.settingKey,
                       ExpandThinking.setting(on),
+                    );
+                  },
+                ),
+                SettingsSwitchRow(
+                  label: l10n.appearanceSettingsShowChangedFiles,
+                  description:
+                      l10n.appearanceSettingsShowChangedFilesDescription,
+                  value: ShowChangedFiles.current.value,
+                  onChanged: (on) {
+                    ShowChangedFiles.current.value = on;
+                    _keep(
+                      ShowChangedFiles.settingKey,
+                      ShowChangedFiles.setting(on),
+                    );
+                  },
+                ),
+                SettingsSwitchRow(
+                  label: l10n.appearanceSettingsPasteCodeAsTag,
+                  description: l10n.appearanceSettingsPasteCodeAsTagDescription,
+                  value: PasteCodeAsTag.current.value,
+                  onChanged: (on) {
+                    PasteCodeAsTag.current.value = on;
+                    _keep(
+                      PasteCodeAsTag.settingKey,
+                      PasteCodeAsTag.setting(on),
                     );
                   },
                 ),

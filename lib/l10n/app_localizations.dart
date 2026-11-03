@@ -12615,6 +12615,30 @@ abstract class AppLocalizations {
   /// **'The model\'s thinking shows open, until you close it. Off: it stays closed, while it is written too.'**
   String get appearanceSettingsExpandThinkingDescription;
 
+  /// No description provided for @appearanceSettingsShowChangedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Changed Files'**
+  String get appearanceSettingsShowChangedFiles;
+
+  /// No description provided for @appearanceSettingsShowChangedFilesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Above the input, the files the model changed, to undo or keep all at once.'**
+  String get appearanceSettingsShowChangedFilesDescription;
+
+  /// No description provided for @appearanceSettingsPasteCodeAsTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste Code as a Reference'**
+  String get appearanceSettingsPasteCodeAsTag;
+
+  /// No description provided for @appearanceSettingsPasteCodeAsTagDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied from the editor goes into the input as a tag of its file and lines. Off: as its text.'**
+  String get appearanceSettingsPasteCodeAsTagDescription;
+
   /// No description provided for @appearanceSettingsMinimap.
   ///
   /// In en, this message translates to:
