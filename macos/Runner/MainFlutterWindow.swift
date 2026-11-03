@@ -1377,8 +1377,10 @@ enum InputSourceIndicator {
     let screen = view.firstRect(forCharacterRange: view.selectedRange(), actualRange: nil)
     guard screen.width > 0 || screen.height > 0 else { return }
     let frame = superview.convert(window.convertFromScreen(screen), from: nil)
+    // Its text and caret unseen: Flutter draws its own.
     view.drawsBackground = false
     view.textColor = .clear
+    view.insertionPointColor = .clear
     view.frame = frame
   }
 }
