@@ -1976,6 +1976,9 @@ class ChatComposerState extends State<ChatComposer>
           placeholder: TextStyle(
             color: colors['agentsChatInput.placeholderForeground'],
           ),
+          // A list's bullets and numbers in from the text's edge.
+          bulletWidth: 28,
+          listIndent: 18,
         ),
       ),
     );

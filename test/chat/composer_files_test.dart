@@ -348,9 +348,15 @@ void main() {
     expect(await _drag(tester, 'dragUpdate', const Offset(400, 5)), isFalse);
     expect(_content(tester), 'hello world');
 
-    // Over the toolbar: at the end.
+    // Over the toolbar (in the box, above the pickers under it): at the end.
     final toolbar =
-        tester.getBottomRight(find.byType(ChatComposer)) - const Offset(80, 8);
+        tester.getBottomRight(
+          find.descendant(
+            of: find.byType(ChatComposer),
+            matching: find.byType(FileDropRegion),
+          ),
+        ) -
+        const Offset(80, 8);
     expect(await _drag(tester, 'dragUpdate', toolbar), isTrue);
     expect(_content(tester), startsWith('hello world{ghost'));
 

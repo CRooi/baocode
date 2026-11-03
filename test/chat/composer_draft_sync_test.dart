@@ -9,7 +9,8 @@ import 'package:baocode/chat/composer/composer_embeds.dart';
 import 'package:baocode/theme/app_theme.dart';
 
 ComposerController _controller(WidgetTester tester, int index) =>
-    tester.widget<MarkdownEditor>(find.byType(MarkdownEditor).at(index))
+    tester
+            .widget<MarkdownEditor>(find.byType(MarkdownEditor).at(index))
             .controller
         as ComposerController;
 

@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 
 import 'composer_embeds.dart';
 
-/// The composer's text being edited: plain text, not markdown, its things
+/// The composer's text being edited: plain text, not markdown (but for a
+/// list's items, their bullets and numbers shown before them), its things
 /// (tags, pictures' references, a paste's…) atoms in it, each a
 /// [ComposerEmbed] the caret skips and Backspace deletes whole.
 ///
@@ -12,7 +13,8 @@ import 'composer_embeds.dart';
 /// composes (an inline emoji's suggestion) leaves those things be, and
 /// nothing it types becomes one.
 class ComposerController extends MarkdownController {
-  ComposerController({super.text, super.selection}) : super(plain: true);
+  ComposerController({super.text, super.selection})
+    : super(plain: true, lists: true);
 
   /// The text as it shows, each thing one character (U+FFFC).
   String get shownText => composerShownText(text);

@@ -227,6 +227,7 @@ class _ThinkingSectionState extends State<ThinkingSection> {
       verb: verb,
       object: object,
       running: _streaming,
+      faint: true,
       expanded: widget.expanded,
       // Nothing to open until its first words.
       onToggle: _text.isEmpty ? null : widget.onToggle,

@@ -13,9 +13,13 @@ class ShimmerText extends StatefulWidget {
     this.padding = const EdgeInsets.symmetric(vertical: 3),
     this.style,
     this.strutStyle,
+    this.faint = false,
   });
 
   final String text;
+
+  /// In the faint color, the shimmer sweeping across it.
+  final bool faint;
 
   /// Its line's height, set apart from the fonts its text falls back on.
   final StrutStyle? strutStyle;
@@ -71,7 +75,7 @@ class _ShimmerTextState extends State<ShimmerText> {
                     1;
           // As upstream's: the description's color, `chat.thinkingShimmer`
           // sweeping across.
-          final base = AppColors.textMuted;
+          final base = widget.faint ? AppColors.textFaint : AppColors.textMuted;
           final shimmer = themeColors['chat.thinkingShimmer'];
           return ShaderMask(
             blendMode: BlendMode.srcIn,

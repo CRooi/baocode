@@ -229,7 +229,7 @@ class _State {
 /// from the line before it on, only until the lines after it read as they
 /// did.
 class MdBlocks {
-  MdBlocks(this._lines, {this.plain = false}) {
+  MdBlocks(this._lines, {this.plain = false, this.lists = false}) {
     _parseAll();
   }
 
@@ -238,6 +238,10 @@ class MdBlocks {
   /// Not markdown: every line a paragraph of text as it is (its atoms
   /// aside, see [MdAtoms]).
   final bool plain;
+
+  /// With [plain], a list's items still read as items (`- `, `1. `): their
+  /// bullets and numbers shown before their text, nothing else markdown.
+  final bool lists;
   final List<MdLineInfo> _infos = [];
   final List<_State> _after = [];
 
@@ -356,7 +360,10 @@ class MdBlocks {
           language: language,
           level: level,
         );
-    if (plain) return (whole(MdLineKind.paragraph), _State.empty);
+    if (plain) {
+      if (!this.lists) return (whole(MdLineKind.paragraph), _State.empty);
+      return _plainListLine(text, state);
+    }
     final lists = state.lists;
 
     if (index <= _frontMatterEnd) {
@@ -636,6 +643,42 @@ class MdBlocks {
 
   /// How deep in [lists] (their items' text columns) a line [indent]
   /// in is.
+  /// A line of plain text with [lists]: an item where it starts as one (a
+  /// space after its bullet or number; no task boxes), else a paragraph
+  /// of it all, which ends the list. A blank line keeps it open.
+  (MdLineInfo, _State) _plainListLine(String text, _State state) {
+    final length = text.length;
+    final paragraph = MdLineInfo(
+      MdLineKind.paragraph,
+      contentStart: 0,
+      contentEnd: length,
+    );
+    if (text.trim().isEmpty) return (paragraph, _State(lists: state.lists));
+    final item = _plainItem.firstMatch(text);
+    if (item == null) return (paragraph, _State.empty);
+    final itemIndent = item[1]!.replaceAll('\t', '    ').length;
+    final stack = [...state.lists];
+    while (stack.isNotEmpty && stack.last > itemIndent) {
+      stack.removeLast();
+    }
+    final level = stack.length;
+    final markerStart = item[1]!.length;
+    final markerEnd = markerStart + item[2]!.length;
+    stack.add(itemIndent + item[2]!.length + item[3]!.length);
+    return (
+      MdLineInfo(
+        MdLineKind.item,
+        level: level,
+        markerStart: markerStart,
+        markerEnd: markerEnd,
+        ordered: item[2]!.contains(RegExp(r'\d')),
+        contentStart: markerEnd + item[3]!.length,
+        contentEnd: length,
+      ),
+      _State(lists: stack),
+    );
+  }
+
   static int _levelAt(List<int> lists, int indent) {
     var level = 0;
     for (final column in lists) {
@@ -688,6 +731,7 @@ class MdBlocks {
   );
   static final _setextUnderline = RegExp(r'^ {0,3}(=+|-+)[ \t]*$');
   static final _item = RegExp(r'^(\s*)([-*+]|\d{1,9}[.)])([ \t]+|$)');
+  static final _plainItem = RegExp(r'^([ \t]*)([-*+]|\d{1,9}[.)])([ \t]+)');
   static final _task = RegExp(r'^\[([ xX])\](?:[ \t]+|$)');
   static final _footnote = RegExp(r'^ {0,3}\[\^[^\]\s]+\]:');
   static final _definition = RegExp(

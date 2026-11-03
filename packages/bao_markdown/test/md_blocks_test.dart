@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:bao_markdown/bao_markdown.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 List<MdLineKind> kindsOf(String text) {
@@ -180,4 +181,43 @@ void main() {
       expect(blocks.definitions, fresh.definitions);
     }
   });
+
+  test('plain text with lists reads only its items as markdown', () {
+    final blocks = MdBlocks(
+      MdLines(
+        '# not a heading\n1. one\n   - nested\n\n2. two\n-no space\n**b**',
+      ),
+      plain: true,
+      lists: true,
+    );
+    final infos = [for (var i = 0; i < blocks.length; i++) blocks.info(i)];
+    expect(infos.map((info) => info.kind), [
+      MdLineKind.paragraph,
+      MdLineKind.item,
+      MdLineKind.item,
+      MdLineKind.paragraph,
+      MdLineKind.item,
+      MdLineKind.paragraph,
+      MdLineKind.paragraph,
+    ]);
+    expect(infos[1].ordered, isTrue);
+    expect(infos[1].contentStart, 3);
+    expect(infos[2].level, 1);
+    expect(infos[4].level, 0);
+  });
+
+  test(
+    'Backspace at a plain list item\'s text takes its number away whole',
+    () {
+      final controller = MarkdownController(
+        text: '1. one',
+        selection: const TextSelection.collapsed(offset: 3),
+        plain: true,
+        lists: true,
+      );
+      controller.deleteBackward();
+      expect(controller.text, 'one');
+      expect(controller.selection.baseOffset, 0);
+    },
+  );
 }

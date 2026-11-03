@@ -106,9 +106,10 @@ class MarkdownController extends ChangeNotifier {
     TextSelection selection = const TextSelection.collapsed(offset: 0),
     this.plain = false,
     this.inline = false,
+    this.lists = false,
   }) : _lines = MdLines(text),
        _source = null {
-    _blocks = MdBlocks(_lines, plain: plain || inline);
+    _blocks = MdBlocks(_lines, plain: plain || inline, lists: plain && lists);
     _selection = ValueNotifier(_clamp(selection));
   }
 
@@ -118,9 +119,10 @@ class MarkdownController extends ChangeNotifier {
     TextSelection selection = const TextSelection.collapsed(offset: 0),
     this.plain = false,
     this.inline = false,
+    this.lists = false,
   }) : _lines = MdLines(source.text),
        _source = source {
-    _blocks = MdBlocks(_lines, plain: plain || inline);
+    _blocks = MdBlocks(_lines, plain: plain || inline, lists: plain && lists);
     _selection = ValueNotifier(_clamp(selection));
     _stopListening = source.listen(_sourceChanged);
   }
@@ -134,6 +136,11 @@ class MarkdownController extends ChangeNotifier {
   /// Markdown's runs only (a table's cell): every line a paragraph, its
   /// marks (bold, code, links…) markdown's.
   final bool inline;
+
+  /// With [plain], a list's items shown as items: their bullets and
+  /// numbers before their text, Backspace taking one away whole, Tab
+  /// nesting them.
+  final bool lists;
 
   /// Where the text is kept, when it is another's.
   final MarkdownTextSource? _source;

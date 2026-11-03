@@ -64,22 +64,18 @@ void main() {
 
   // A rich text editor's shortcuts for these: nothing here.
   for (final (name, key, shift) in shortcuts) {
-    testWidgets(
-      'the $name shortcut leaves the text as it is',
-      (tester) async {
-        final controller = await pumpComposer(tester);
-        await press(tester, key, shift: shift);
-        expect(controller.text, 'hello');
-      },
-      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
-    );
+    testWidgets('the $name shortcut leaves the text as it is', (tester) async {
+      final controller = await pumpComposer(tester);
+      await press(tester, key, shift: shift);
+      expect(controller.text, 'hello');
+    }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
   }
 
   testWidgets('markdown typed is the text, not what it would make', (
     tester,
   ) async {
     final controller = await pumpComposer(tester);
-    for (final text in ['# Title', '- [ ] task', '**bold**', '> quote']) {
+    for (final text in ['# Title', '**bold**', '> quote', '-no space']) {
       controller.replace(0, controller.length, text);
       await tester.pump();
       // Every line a line of text, no runs of markdown in it.
@@ -108,5 +104,29 @@ void main() {
     );
     await tester.pump();
     expect(controller.text, '[] ');
+  });
+
+  testWidgets('a list item shows its number apart, its text after it', (
+    tester,
+  ) async {
+    final controller = await pumpComposer(tester);
+    controller.replace(0, controller.length, '1. one\n- [ ] two');
+    await tester.pump();
+    expect(controller.infoOf(0).kind, MdLineKind.item);
+    expect(controller.infoOf(1).kind, MdLineKind.item);
+    final shown = [
+      for (final text in tester.widgetList<RichText>(
+        find.descendant(
+          of: find.byType(MdLineBox),
+          matching: find.byType(RichText),
+        ),
+      ))
+        text.text.toPlainText(),
+    ];
+    // The number out of the line's text; no task's box made.
+    expect(shown.take(2), ['one', '[ ] two']);
+    expect(find.text('1.'), findsOneWidget);
+    // The text sent is as typed.
+    expect(controller.text, '1. one\n- [ ] two');
   });
 }

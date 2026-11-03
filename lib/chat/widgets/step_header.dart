@@ -34,7 +34,11 @@ class StepHeader extends StatelessWidget {
     this.action,
     this.spans,
     this.bold = false,
+    this.faint = false,
   });
+
+  /// The line in the faint color, as a fold's (a thought's, say).
+  final bool faint;
 
   final String verb;
   final String object;
@@ -98,6 +102,7 @@ class StepHeader extends StatelessWidget {
             ellipsis: false,
             padding: EdgeInsets.zero,
             style: TextStyle(fontWeight: weight),
+            faint: faint,
           )
         : Text.rich(
             TextSpan(
@@ -115,7 +120,7 @@ class StepHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: AppColors.textMuted,
+              color: faint ? AppColors.textFaint : AppColors.textMuted,
               fontSize: fontSize,
               fontWeight: weight,
             ),

@@ -82,8 +82,11 @@ void main() {
     );
     // The project's own folder is not one of them.
     expect(
-      (await mentions().suggest('app', root: app, kernel: (_) async => []))
-          .where((s) => s.kind == SuggestionKind.folder),
+      (await mentions().suggest(
+        'app',
+        root: app,
+        kernel: (_) async => [],
+      )).where((s) => s.kind == SuggestionKind.folder),
       isEmpty,
     );
   });
