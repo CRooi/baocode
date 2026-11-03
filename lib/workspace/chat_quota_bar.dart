@@ -212,7 +212,7 @@ class _ChatQuotaBarState extends State<ChatQuotaBar>
             child: widget.branch,
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 4, left: 2),
+            padding: const EdgeInsets.only(top: 8, left: 2),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: constraints.maxWidth - 2),
               child: _QuotaPill(

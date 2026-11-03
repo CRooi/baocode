@@ -1640,7 +1640,7 @@ class ChatComposerState extends State<ChatComposer>
         const SizedBox(width: 8),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: 8),
             child: _buildPickers(alignEnd: true),
           ),
         ),

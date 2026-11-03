@@ -89,12 +89,17 @@ class StepsFoldLine extends StatelessWidget {
         trailingGap: 0,
         trailing: _thumbnails(context, images, expanded: expanded),
         spans: [
-          for (final (i, (phrase, n)) in actions.indexed) ...[
-            if (i > 0) TextSpan(text: l10n.stepsSeparator),
-            ..._withCount(phrase, n, count),
-          ],
-          if (_thought(tally, l10n) case final thought?)
-            TextSpan(text: ' · $thought', style: faint),
+          TextSpan(
+            style: faint,
+            children: [
+              for (final (i, (phrase, n)) in actions.indexed) ...[
+                if (i > 0) TextSpan(text: l10n.stepsSeparator),
+                ..._withCount(phrase, n, count),
+              ],
+              if (_thought(tally, l10n) case final thought?)
+                TextSpan(text: ' · $thought'),
+            ],
+          ),
         ],
       ),
     );
