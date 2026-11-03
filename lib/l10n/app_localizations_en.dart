@@ -9338,6 +9338,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enhance prompt: the auxiliary model makes the message a clearer, more specific prompt for the agent, filling in what you left vague; pictures, files, code and links stay as they are; Undo takes it back';
 
   @override
+  String get composerRestoreOriginal => 'Back to the message as sent';
+
+  @override
+  String get composerRestoreOriginalConfirm =>
+      'Put the message back as it was sent? What you changed is lost.';
+
+  @override
+  String get composerRestoreOriginalButton => 'Restore';
+
+  @override
   String composerPolishFailed(String error) {
     return 'Could not enhance the prompt: $error';
   }

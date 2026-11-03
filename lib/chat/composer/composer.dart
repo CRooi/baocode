@@ -40,6 +40,7 @@ import 'session_model_picker.dart';
 import 'kernel_option_text.dart';
 import 'file_drop.dart';
 import 'suggestion_menu.dart';
+import '../../ide/ide_dialog.dart';
 import '../../ide/ide_hover.dart';
 import '../../ide/ide_spinning.dart';
 import '../../theme/codicons.dart';
@@ -206,6 +207,11 @@ class ChatComposerState extends State<ChatComposer>
     if (widget.draft case final draft? when draft.saved) {
       return {for (final image in draft.images) ?image.number: image};
     }
+    return _givenPool();
+  }
+
+  /// [ChatComposer.initialImages], numbered: the pool before any draft.
+  Map<int, ImageAttachment> _givenPool() {
     final pool = <int, ImageAttachment>{};
     var next = widget.session.lastImageNumber + 1;
     for (final image in widget.initialImages) {
@@ -235,8 +241,19 @@ class ChatComposerState extends State<ChatComposer>
         ),
       );
     }
+    final content = _givenContent(_pool);
+    if (content.isEmpty) return ComposerController();
+    return ComposerController(
+      text: content,
+      selection: TextSelection.collapsed(offset: content.length),
+    );
+  }
+
+  /// [ChatComposer.initialText] as the editor's content, the images of
+  /// [pool] it does not refer to at its start.
+  String _givenContent(Map<int, ImageAttachment> pool) {
     var text = widget.initialText ?? '';
-    final numbers = _pool.keys.toSet();
+    final numbers = pool.keys.toSet();
     // Every image referred to: those the text does not, at its start.
     final referred = {
       for (final match in imageReferencePattern.allMatches(text))
@@ -246,16 +263,54 @@ class ChatComposerState extends State<ChatComposer>
     if (unreferred.isNotEmpty) {
       text = [unreferred.map(imageReference).join(' '), text].join(' ');
     }
-    if (text.isEmpty) return ComposerController();
-    final content = composerContentFromText(
+    if (text.isEmpty) return '';
+    return composerContentFromText(
       text,
       ComposerVocabulary.read(context),
       images: numbers,
     );
-    return ComposerController(
-      text: content,
-      selection: TextSelection.collapsed(offset: content.length),
+  }
+
+  /// The message being edited as it was sent: its content, worked out
+  /// once.
+  late final String _givenText = _givenContent(_givenPool());
+
+  /// Whether the message being edited (an editor with
+  /// [ChatComposer.initialText]) differs from it as it was sent.
+  bool _editedFromGiven() {
+    if (widget.onSubmit == null || widget.initialText == null) return false;
+    final version = _controller.textVersion;
+    if (version != _editedVersion) {
+      _editedVersion = version;
+      _edited = _controller.text != _givenText;
+    }
+    return _edited;
+  }
+
+  int? _editedVersion;
+  bool _edited = false;
+
+  /// Asks, then puts the message being edited back as it was sent.
+  Future<void> _restoreGiven() async {
+    final l10n = context.l10n;
+    final choice = await showIdeDialog(
+      context,
+      message: l10n.composerRestoreOriginalConfirm,
+      buttons: [l10n.composerRestoreOriginalButton],
     );
+    if (choice != 0 || !mounted) return;
+    setState(() => _pool = _givenPool());
+    final content = _givenText;
+    _controller
+      ..breakUndo()
+      ..replace(
+        0,
+        _controller.length,
+        content,
+        selection: TextSelection.collapsed(offset: content.length),
+      )
+      ..breakUndo();
+    _focusNode.requestFocus();
   }
 
   /// Pastes what the clipboard holds: copied files as tags of their paths
@@ -817,6 +872,7 @@ class ChatComposerState extends State<ChatComposer>
     pool: _pool,
     canSend: _canSend,
     polishable: ComposerPolishSetting.current() && _hasWords(),
+    edited: _editedFromGiven(),
   );
 
   /// Whether the text has words to polish: read again only once it
@@ -2106,6 +2162,10 @@ class ChatComposerState extends State<ChatComposer>
             ),
             const SizedBox(width: 2),
           ],
+          if (_shownBuilt!.edited) ...[
+            _RestoreButton(onTap: () => unawaited(_restoreGiven())),
+            const SizedBox(width: 2),
+          ],
           const SizedBox(width: 2),
           _SendButton(
             streaming: _showsStop,
@@ -2162,6 +2222,47 @@ class _PolishButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(5),
             ),
             child: busy ? IdeSpinning(icon) : icon,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// In the editor of a sent message, once it was changed: back to the
+/// message as it was sent, asked first.
+class _RestoreButton extends StatelessWidget {
+  const _RestoreButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = themeColors;
+    return IdeHover(
+      message: context.l10n.composerRestoreOriginal,
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          // Keeps the editor's focus.
+          onTapDown: (_) {},
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            width: 23,
+            height: 22,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: hovered
+                  ? colors['toolbar.hoverBackground']
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Icon(
+              Codicons.discard,
+              size: 14,
+              color: colors['icon.foreground'],
+            ),
           ),
         ),
       ),
@@ -2348,4 +2449,5 @@ typedef _ShownOfText = ({
   Map<int, ImageAttachment> pool,
   bool canSend,
   bool polishable,
+  bool edited,
 });
