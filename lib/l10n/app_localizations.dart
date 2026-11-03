@@ -12663,6 +12663,18 @@ abstract class AppLocalizations {
   /// **'Code copied from the editor goes into the input as a tag of its file and lines. Off: as its text.'**
   String get appearanceSettingsPasteCodeAsTagDescription;
 
+  /// No description provided for @appearanceSettingsPasteLongTextAsTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse Long Pasted Text'**
+  String get appearanceSettingsPasteLongTextAsTag;
+
+  /// No description provided for @appearanceSettingsPasteLongTextAsTagDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Long text pasted into the input goes in as a tag of it. Off: shown in full.'**
+  String get appearanceSettingsPasteLongTextAsTagDescription;
+
   /// No description provided for @appearanceSettingsMinimap.
   ///
   /// In en, this message translates to:

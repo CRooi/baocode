@@ -5530,6 +5530,8 @@
   "appearanceSettingsShowChangedFilesDescription": "Above the input, the files the model changed, to undo or keep all at once.",
   "appearanceSettingsPasteCodeAsTag": "Paste Code as a Reference",
   "appearanceSettingsPasteCodeAsTagDescription": "Code copied from the editor goes into the input as a tag of its file and lines. Off: as its text.",
+  "appearanceSettingsPasteLongTextAsTag": "Collapse Long Pasted Text",
+  "appearanceSettingsPasteLongTextAsTagDescription": "Long text pasted into the input goes in as a tag of it. Off: shown in full.",
   "appearanceSettingsMinimap": "Conversation Minimap",
   "appearanceSettingsMinimapDescription": "A minimap of the whole conversation at the left of its column, where you are in it shown as you scroll; click or drag it to get somewhere. It stands in for the scrollbar, and is not shown in a window too narrow for it. Off: the scrollbar.",
   "appearanceSettingsWindowBlur": "Native Window Blur",

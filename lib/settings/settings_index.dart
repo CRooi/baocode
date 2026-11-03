@@ -138,6 +138,11 @@ List<SettingsEntry> settingsEntries(AppLocalizations l10n) {
     ),
     entry(
       appearance,
+      l10n.appearanceSettingsPasteLongTextAsTag,
+      l10n.appearanceSettingsPasteLongTextAsTagDescription,
+    ),
+    entry(
+      appearance,
       l10n.appearanceSettingsSidebarTimes,
       l10n.appearanceSettingsSidebarTimesDescription,
     ),

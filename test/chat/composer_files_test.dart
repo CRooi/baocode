@@ -534,6 +534,21 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
   }, variant: _macOS);
 
+  testWidgets('a long paste goes in as its text with the tag turned off', (
+    tester,
+  ) async {
+    final session = await _pump(tester);
+    PasteLongTextAsTag.current.value = false;
+    addTearDown(() => PasteLongTextAsTag.current.value = true);
+    final long = [for (var i = 1; i <= 30; i++) 'line $i'].join('\n');
+    _clipboardText(tester, long);
+    await _paste(tester);
+    expect(_content(tester), long);
+    expect(find.byType(ComposerPastedTextChip), findsNothing);
+    session.stop();
+    await tester.pump(const Duration(seconds: 5));
+  }, variant: _macOS);
+
   testWidgets('a short paste goes in as text', (tester) async {
     await _pump(tester);
     _clipboardText(tester, 'line 1\nline 2');

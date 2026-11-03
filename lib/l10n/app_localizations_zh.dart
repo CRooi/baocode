@@ -7335,6 +7335,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '从编辑器复制的代码粘贴到输入框时，显示为文件和行号的标签。关闭后粘贴原文。';
 
   @override
+  String get appearanceSettingsPasteLongTextAsTag => '折叠粘贴的长文本';
+
+  @override
+  String get appearanceSettingsPasteLongTextAsTagDescription =>
+      '粘贴到输入框的长文本显示为一个标签。关闭后完整展示原文。';
+
+  @override
   String get appearanceSettingsMinimap => '对话缩略图';
 
   @override

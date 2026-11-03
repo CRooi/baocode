@@ -623,6 +623,10 @@ void followSettingsFiles(SettingsFiles files) {
     files.settings,
     () => files.settings[PasteCodeAsTag.settingKey],
   );
+  PasteLongTextAsTag.follow(
+    files.settings,
+    () => files.settings[PasteLongTextAsTag.settingKey],
+  );
   // Settings → Appearance: whether the conversation has a minimap, how
   // opaque its glass is and how much it stretches.
   ChatMinimap.follow(files.settings, (key) => files.settings[key]);

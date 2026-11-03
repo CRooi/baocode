@@ -100,6 +100,26 @@ abstract final class PasteCodeAsTag {
   }
 }
 
+/// Whether long text pasted into the composer goes in as a tag of it (see
+/// PastedText.isLong), or as the text itself. settings.json's
+/// `chat.pasteLongTextAsTag`; unset, on.
+abstract final class PasteLongTextAsTag {
+  static const settingKey = 'chat.pasteLongTextAsTag';
+
+  static bool parse(Object? value) => value != false;
+
+  /// As settings.json keeps it; null (not written) when on.
+  static Object? setting(bool on) => on ? null : false;
+
+  static final ValueNotifier<bool> current = ValueNotifier(true);
+
+  static void follow(Listenable changes, Object? Function() read) {
+    void update() => current.value = parse(read());
+    update();
+    changes.addListener(update);
+  }
+}
+
 /// The size of a conversation's text: the model's replies and the user's
 /// messages. settings.json's `chat.fontSize`; unset, [defaultSize].
 abstract final class ChatFontSize {

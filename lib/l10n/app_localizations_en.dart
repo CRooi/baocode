@@ -7807,6 +7807,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Code copied from the editor goes into the input as a tag of its file and lines. Off: as its text.';
 
   @override
+  String get appearanceSettingsPasteLongTextAsTag =>
+      'Collapse Long Pasted Text';
+
+  @override
+  String get appearanceSettingsPasteLongTextAsTagDescription =>
+      'Long text pasted into the input goes in as a tag of it. Off: shown in full.';
+
+  @override
   String get appearanceSettingsMinimap => 'Conversation Minimap';
 
   @override

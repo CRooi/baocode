@@ -357,7 +357,7 @@ class ChatComposerState extends State<ChatComposer>
     // Pasted raw, the text goes in as it is, whatever its length: no paste
     // tag (the shortcut is for exactly that), and no attachment offload,
     // which happens as the message is sent (see PasteStore.offload).
-    if (!raw && PastedText.isLong(plain)) {
+    if (!raw && PasteLongTextAsTag.current.value && PastedText.isLong(plain)) {
       _insertTags([
         ComposerPastedTextEmbed.of(
           PastedText(number: _nextPastedNumber(), text: plain),

@@ -431,6 +431,7 @@ class AppearanceSettingsPage extends StatelessWidget {
         ChatFontSize.current,
         ShowChangedFiles.current,
         PasteCodeAsTag.current,
+        PasteLongTextAsTag.current,
         ChatMinimap.enabled,
         ChatMinimap.glass,
         ChatMinimap.elasticity,
@@ -687,6 +688,19 @@ class AppearanceSettingsPage extends StatelessWidget {
                     _keep(
                       PasteCodeAsTag.settingKey,
                       PasteCodeAsTag.setting(on),
+                    );
+                  },
+                ),
+                SettingsSwitchRow(
+                  label: l10n.appearanceSettingsPasteLongTextAsTag,
+                  description:
+                      l10n.appearanceSettingsPasteLongTextAsTagDescription,
+                  value: PasteLongTextAsTag.current.value,
+                  onChanged: (on) {
+                    PasteLongTextAsTag.current.value = on;
+                    _keep(
+                      PasteLongTextAsTag.settingKey,
+                      PasteLongTextAsTag.setting(on),
                     );
                   },
                 ),
