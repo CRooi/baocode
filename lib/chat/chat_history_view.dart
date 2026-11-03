@@ -1623,7 +1623,15 @@ class _ChatHistoryViewState extends State<ChatHistoryView>
     // Until the editor reports its height, hold the message's.
     final laidOut = _laidOutItems().where((box) => _indexOf(box) == index);
     if (_feed.canEditMessages) {
-      _feed.editing = (index: index, draft: ComposerDraft());
+      // What was typed in it before and left unsent, if anything.
+      _feed.editing = (
+        index: index,
+        draft: switch (_feed) {
+          final ChatSession session =>
+            session.keptEdits[item.text] ??= ComposerDraft(),
+          _ => ComposerDraft(),
+        },
+      );
     }
     _editorClose.stop();
     setState(() {
@@ -2131,6 +2139,12 @@ class _ChatHistoryViewState extends State<ChatHistoryView>
 
   void _submitEdit(int index, ComposerMessage message) {
     _feed.editing = null;
+    if ((_feed, _feed.itemAt(index)) case (
+      final ChatSession session,
+      final UserMessageItem item,
+    )) {
+      session.keptEdits.remove(item.text);
+    }
     if (!_scrolledPast(index)) _animateItem(index);
     setState(() {
       _editingIndex = null;

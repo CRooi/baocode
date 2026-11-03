@@ -37,6 +37,7 @@ import 'package:baocode/chat/composer/composer_controller.dart';
 import 'package:baocode/chat/composer/composer_embeds.dart';
 import 'package:baocode/chat/composer/composer_files.dart';
 import 'package:baocode/chat/composer/composer_picker.dart';
+import 'package:baocode/theme/codicons.dart';
 import 'package:baocode/chat/floating/floating_layer.dart';
 import 'package:baocode/chat/composer/suggestion_menu.dart';
 import 'package:baocode/chat/panels/activity_strip.dart';
@@ -1508,6 +1509,52 @@ void main() {
         tester.widget<MarkdownEditor>(composerEditor().last).controller.text,
         isNot(contains('再加一句')),
       );
+    });
+
+    testWidgets('an edit left unsent is there again, and goes back to the '
+        'message as sent once confirmed', (tester) async {
+      await pumpScreen(tester);
+      await reveal(tester, '第 2 轮');
+      await tester.tap(bubble('第 2 轮'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      final restore = find.descendant(
+        of: find.byType(ChatHistoryView),
+        matching: find.byIcon(Codicons.discard),
+      );
+      // Not changed yet: nothing to go back to.
+      expect(restore, findsNothing);
+      final controller = editController(tester);
+      final original = controller.text;
+      controller.replace(controller.length, controller.length, ' 再加一句');
+      await tester.pump();
+      expect(restore, findsOneWidget);
+
+      // Closed by a click outside, the title bar.
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: const Offset(400, 10));
+      await mouse.down(const Offset(400, 10));
+      await mouse.up();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(editorInHistory(), findsNothing);
+      // The message shows as it was sent.
+      expect(bubble('第 2 轮'), findsOneWidget);
+      expect(find.textContaining('再加一句', findRichText: true), findsNothing);
+
+      // Opened again: what was typed is there.
+      await tester.tap(bubble('第 2 轮'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(editController(tester).text, contains('再加一句'));
+
+      await tester.tap(restore);
+      await settleAnimations(tester);
+      await tester.tap(find.text('Restore'));
+      await settleAnimations(tester);
+      expect(editController(tester).text, original);
+      expect(restore, findsNothing);
+      await mouse.removePointer();
     });
 
     testWidgets('an edit stays open while another conversation is visited '

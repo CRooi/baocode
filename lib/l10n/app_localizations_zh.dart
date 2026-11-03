@@ -8805,6 +8805,15 @@ class AppLocalizationsZh extends AppLocalizations {
       '提示词增强：用辅助模型把消息改写成更清楚、更具体的提示词，没说清的地方由它补全；图片、文件、代码和链接原样不动，可撤销';
 
   @override
+  String get composerRestoreOriginal => '恢复为发送时的版本';
+
+  @override
+  String get composerRestoreOriginalConfirm => '恢复为发送时的版本吗？当前的修改会丢失。';
+
+  @override
+  String get composerRestoreOriginalButton => '恢复';
+
+  @override
   String composerPolishFailed(String error) {
     return '提示词增强失败：$error';
   }

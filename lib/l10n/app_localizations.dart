@@ -15177,6 +15177,24 @@ abstract class AppLocalizations {
   /// **'Enhance prompt: the auxiliary model makes the message a clearer, more specific prompt for the agent, filling in what you left vague; pictures, files, code and links stay as they are; Undo takes it back'**
   String get composerPolishHint;
 
+  /// No description provided for @composerRestoreOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the message as sent'**
+  String get composerRestoreOriginal;
+
+  /// No description provided for @composerRestoreOriginalConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Put the message back as it was sent? What you changed is lost.'**
+  String get composerRestoreOriginalConfirm;
+
+  /// No description provided for @composerRestoreOriginalButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get composerRestoreOriginalButton;
+
   /// No description provided for @composerPolishFailed.
   ///
   /// In en, this message translates to:

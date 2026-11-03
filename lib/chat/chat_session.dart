@@ -178,6 +178,12 @@ class ChatSession extends ChangeNotifier implements ChatFeed {
   @override
   ({int index, ComposerDraft draft})? editing;
 
+  /// What was typed editing a sent message and left unsent, by the
+  /// message's text (the earlier history's items are made anew as they are
+  /// read, with no id): there again as it is edited again, until it is
+  /// sent.
+  final Map<String, ComposerDraft> keptEdits = {};
+
   /// The subagents opened in its view, one in the other (their ids,
   /// outermost first): shown again when the view comes back to it.
   List<String> openAgents = const [];
