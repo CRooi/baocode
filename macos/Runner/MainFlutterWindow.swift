@@ -652,6 +652,7 @@ class MainFlutterWindow: BaoWindow {
   private static let frameName = "BaoCodeMainWindow"
 
   override func awakeFromNib() {
+    InputSourceIndicator.install()
     let flutterViewController = FlutterViewController()
     setUp(flutter: flutterViewController, suffix: "", size: Self.defaultSize)
     // Where the user left it, as big as they made it (kept in the user
@@ -1310,5 +1311,74 @@ final class ContextMenu: NSMenu {
     answer?(id)
     answer = nil
     keepAlive = nil
+  }
+}
+
+/// The input source the system shows at the caret as it changes (macOS 14),
+/// in Flutter's text fields too. Their text input client, the engine's
+/// FlutterTextInputPlugin, is an NSTextView of no size at the view's corner,
+/// and the system hangs the input source from that text view's own insertion
+/// indicator: nowhere to be seen, so neither is the input source. The plugin
+/// is moved to the caret here (see followCaret), and asked where its
+/// selection and text are shown it answers with the caret and its window;
+/// all of it for that class alone, every other text view as it was.
+enum InputSourceIndicator {
+  static func install() {
+    guard let plugin = NSClassFromString("FlutterTextInputPlugin") else { return }
+    let rectType = "{CGRect={CGPoint=dd}{CGSize=dd}}@:"
+    func answer(_ name: String, _ rect: @escaping (NSTextView) -> NSRect) {
+      let selector = NSSelectorFromString(name)
+      let type = class_getInstanceMethod(NSTextView.self, selector)
+        .flatMap { method_getTypeEncoding($0) }
+        .map { String(cString: $0) } ?? rectType
+      let block: @convention(block) (NSTextView) -> NSRect = rect
+      // Added to the plugin's class, over NSTextView's: NSTextView's own
+      // stay as they are, for every other text view.
+      class_addMethod(plugin, selector, imp_implementationWithBlock(block), type)
+    }
+    answer("unionRectInVisibleSelectedRange") { view in
+      view.firstRect(forCharacterRange: view.selectedRange(), actualRange: nil)
+    }
+    answer("documentVisibleRect") { view in
+      view.window?.frame ?? .zero
+    }
+    followCaret(plugin)
+  }
+
+  /// The plugin moved to where Flutter says the caret is as Flutter says so
+  /// (setCaretRect, setEditableSizeAndTransform), drawing nothing and
+  /// taking no clicks: NSTextView's own insertion indicator, which the
+  /// system hangs the input source from, is then where the caret is.
+  private static func followCaret(_ plugin: AnyClass) {
+    let handle = NSSelectorFromString("handleMethodCall:result:")
+    guard let method = class_getInstanceMethod(plugin, handle) else { return }
+    typealias Handle = @convention(c) (AnyObject, Selector, FlutterMethodCall, Any) -> Void
+    let base = unsafeBitCast(method_getImplementation(method), to: Handle.self)
+    let block: @convention(block) (NSTextView, FlutterMethodCall, Any) -> Void = {
+      view, call, result in
+      base(view, handle, call, result)
+      switch call.method {
+      case "TextInput.setCaretRect", "TextInput.setEditableSizeAndTransform",
+        "TextInput.show":
+        place(view)
+      default:
+        break
+      }
+    }
+    method_setImplementation(method, imp_implementationWithBlock(block))
+
+    let hitTest = #selector(NSView.hitTest(_:))
+    let noHit: @convention(block) (NSView, NSPoint) -> NSView? = { _, _ in nil }
+    class_addMethod(plugin, hitTest, imp_implementationWithBlock(noHit), "@@:{CGPoint=dd}")
+  }
+
+  private static func place(_ view: NSTextView) {
+    guard let window = view.window, let superview = view.superview else { return }
+    let screen = view.firstRect(forCharacterRange: view.selectedRange(), actualRange: nil)
+    guard screen.width > 0 || screen.height > 0 else { return }
+    let frame = superview.convert(window.convertFromScreen(screen), from: nil)
+    view.drawsBackground = false
+    view.textColor = .clear
+    view.frame = frame
   }
 }
