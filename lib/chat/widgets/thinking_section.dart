@@ -9,6 +9,7 @@ import '../../theme/app_theme.dart';
 import 'agent_step.dart' show AgentStep;
 import 'edge_fade_mask.dart';
 import 'finite_selection_edges.dart';
+import 'inline_code.dart';
 import 'live_selectable_text.dart';
 import 'step_header.dart';
 import 'wheel_latch.dart';
@@ -193,7 +194,10 @@ class _ThinkingSectionState extends State<ThinkingSection> {
                     margin: const EdgeInsets.only(top: 6, bottom: 2),
                     child: _streaming
                         ? _buildLiveText()
-                        : Text(_text, style: _textStyle),
+                        // Its selection a line high, as the reply's.
+                        : InlineCodeText(
+                            TextSpan(text: _text, style: _textStyle),
+                          ),
                   )
                 : const SizedBox(width: double.infinity),
           ),

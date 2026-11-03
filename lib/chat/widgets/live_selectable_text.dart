@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -833,6 +834,8 @@ class _ChunkedPainter {
                 baseOffset: math.max(start - chunk.start, 0),
                 extentOffset: math.min(end, chunk.end) - chunk.start,
               ),
+              // A line high, not each run's font's: even along a line.
+              boxHeightStyle: ui.BoxHeightStyle.max,
             ))
               TextBox.fromLTRBD(
                 box.left,
