@@ -69,6 +69,11 @@ class _ContextUsagePanelState extends State<ContextUsagePanel>
   String? _picked;
   final Set<String> _open = {};
 
+  /// What fills the window, a part each: folded until asked for.
+  bool _expanded = false;
+
+  void _toggleExpanded() => setState(() => _expanded = !_expanded);
+
   static const _order = [
     'system',
     'memory',
@@ -306,6 +311,23 @@ class _ContextUsagePanelState extends State<ContextUsagePanel>
             ),
           ),
           const SizedBox(width: 8),
+          IdeHover(
+            message: _expanded
+                ? l10n.interactionCollapse
+                : l10n.interactionExpand,
+            child: GestureDetector(
+              onTap: _toggleExpanded,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Icon(
+                  _expanded ? Codicons.chevronUp : Codicons.chevronDown,
+                  size: 14,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           // With the keys of Toggle Context Panel, which closes it too
           // (none by default).
           IdeHover(
@@ -333,25 +355,35 @@ class _ContextUsagePanelState extends State<ContextUsagePanel>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
-              height: 8,
-              width: double.infinity,
-              child: CustomPaint(
-                painter: _WindowPainter(
-                  window: total,
-                  used: [
-                    for (final part in parts)
-                      (part.tokens, part.color, part.key == _picked),
-                  ],
-                  picked: _picked != null,
-                  compactAt: compactAt,
-                  track: themeColors['editorWidget.border'],
-                  hatch: AppColors.textFaint,
-                  gap: AppColors.surface,
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _toggleExpanded,
+                child: SizedBox(
+                  height: 8,
+                  width: double.infinity,
+                  child: CustomPaint(
+                    // Folded, what is used all in one.
+                    painter: _WindowPainter(
+                      window: total,
+                      used: _expanded
+                          ? [
+                              for (final part in parts)
+                                (part.tokens, part.color, part.key == _picked),
+                            ]
+                          : [(used, themeColors['focusBorder'], false)],
+                      picked: _expanded && _picked != null,
+                      compactAt: _expanded ? compactAt : null,
+                      track: themeColors['editorWidget.border'],
+                      hatch: AppColors.textFaint,
+                      gap: AppColors.surface,
+                    ),
+                  ),
                 ),
               ),
             ),
-            if (parts.length > 1 || reserved > 0) ...[
+            if (_expanded && (parts.length > 1 || reserved > 0)) ...[
               const SizedBox(height: 8),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -398,7 +430,7 @@ class _ContextUsagePanelState extends State<ContextUsagePanel>
                 },
               ),
             ],
-            if (picked != null && items.isNotEmpty) ...[
+            if (_expanded && picked != null && items.isNotEmpty) ...[
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.fromLTRB(2, 8, 2, 6),

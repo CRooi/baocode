@@ -1764,6 +1764,7 @@ class ChatComposerState extends State<ChatComposer>
       _showsStop,
       session.health.noModel,
       session.context?.fraction,
+      _limitUsed(session),
       for (final choice in [
         session.kernelChoice,
         session.modes,
@@ -2128,6 +2129,22 @@ class ChatComposerState extends State<ChatComposer>
     );
   }
 
+  /// The most used of the account's limits (its five-hour and weekly
+  /// windows), 0 to 1; null when none is known.
+  static double? _limitUsed(ChatSession session) {
+    final now = DateTime.now();
+    double? most;
+    for (final limit in session.stats?.limits ?? const <RateLimitWindow>[]) {
+      // Past its reset, the window starts over.
+      final resets = limit.resetsAt;
+      final used = resets != null && !resets.isAfter(now)
+          ? 0.0
+          : limit.utilization.clamp(0.0, 1.0);
+      if (most == null || used > most) most = used;
+    }
+    return most;
+  }
+
   Widget _buildToolbar() {
     final session = widget.session;
     final context = session.context;
@@ -2154,7 +2171,8 @@ class ChatComposerState extends State<ChatComposer>
             final usage?,
           )) ...[
             _ContextRing(
-              fraction: usage.fraction,
+              fraction: _limitUsed(session) ?? usage.fraction,
+              limit: _limitUsed(session) != null,
               active: widget.contextPanelOpen,
               // Toggle Context Panel's, which has none by default.
               tooltip: _hovers.ring,
@@ -2276,9 +2294,14 @@ class _ContextRing extends StatelessWidget {
     required this.active,
     required this.tooltip,
     required this.onTap,
+    this.limit = false,
   });
 
   final double fraction;
+
+  /// [fraction] is of the account's limits: near them, it warns as their
+  /// meters in the context panel do.
+  final bool limit;
   final bool active;
   final String tooltip;
   final VoidCallback onTap;
@@ -2315,7 +2338,13 @@ class _ContextRing extends StatelessWidget {
                   painter: _RingPainter(
                     value,
                     track: colors['disabledForeground'],
-                    arc: colors['icon.foreground'],
+                    arc: colors[!limit
+                        ? 'icon.foreground'
+                        : fraction >= 0.9
+                        ? 'editorError.foreground'
+                        : fraction >= 0.7
+                        ? 'editorWarning.foreground'
+                        : 'icon.foreground'],
                   ),
                 ),
               ),

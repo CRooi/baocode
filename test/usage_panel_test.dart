@@ -5,6 +5,7 @@ import 'package:baocode/ide/ide_hover.dart';
 import 'package:baocode/ide/ide_switch.dart';
 import 'package:baocode/kernel/extension_switches.dart';
 import 'package:baocode/kernel/kernel_types.dart';
+import 'package:baocode/theme/codicons.dart';
 
 void main() {
   testWidgets('the plan limits show under the context, a row each', (
@@ -234,6 +235,11 @@ void main() {
           ),
         ),
       );
+      // Folded at first: the window as one bar, its parts not shown.
+      expect(find.text('Tool results'), findsNothing);
+      expect(find.textContaining('297.0k to auto-compact'), findsOneWidget);
+      await tester.tap(find.byIcon(Codicons.chevronDown));
+      await tester.pump();
       // The messages' tool results apart; MCP's two in one.
       expect(find.text('Tool results'), findsOneWidget);
       expect(find.text('Conversation'), findsOneWidget);
