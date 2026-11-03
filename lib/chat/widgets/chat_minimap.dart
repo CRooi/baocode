@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
 import '../chat_column.dart';
+import '../chat_display_settings.dart';
 import '../chat_models.dart';
 import '../composer/composer_files.dart' show splitCodeAppendix;
 import '../user_message_style.dart';
@@ -280,20 +281,23 @@ class _ChatMinimapState extends State<ChatMinimap>
   /// messages' style.
   double _columnWidth = 0;
   UserMessageStyle? _style;
+  bool? _fold;
   bool _stale = true;
 
   void _sync(double columnWidth) {
     final width = math.max(160.0, (columnWidth / 16).round() * 16.0);
     final style = UserMessageStyle.current.value;
-    if (width != _columnWidth || style != _style) {
+    final fold = FoldLongMessages.current.value;
+    if (width != _columnWidth || style != _style || fold != _fold) {
       _samples = Map.identity();
       _columnWidth = width;
       _style = style;
+      _fold = fold;
       _stale = true;
     }
     if (!_stale) return;
     _stale = false;
-    final sampler = _Sampler(width, bubbles: style == UserMessageStyle.bubble);
+    final sampler = _Sampler(width, bubbles: style.fitted);
     final count = widget.rowCount;
     final samples = Map<ChatItem, _Sample>.identity();
     final rows = <_Sample>[];
@@ -2057,7 +2061,9 @@ class _Sampler {
     }
     // Up to one line more than it collapses to shows whole.
     const collapsed = UserMessageBubble.collapsedLines;
-    if (rows > collapsed + 1) rows = collapsed;
+    if (FoldLongMessages.current.value && rows > collapsed + 1) {
+      rows = collapsed;
+    }
     _y += (rows * _line + padY) * _scale;
     _userAt = (top + _y) / 2;
   }

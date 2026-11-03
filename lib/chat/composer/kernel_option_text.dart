@@ -2,9 +2,8 @@ import '../../kernel/agent_kernel.dart';
 import '../../kernel/kernel_types.dart';
 import '../../l10n/l10n.dart';
 
-/// [option], one of [kernel]'s approvals, in the app's language: kernels
-/// name them in English. Those not known here stay as they are, and the
-/// modes (Agent, Ask, Plan) are named as they are in every language.
+/// [option], one of [kernel]'s modes or approvals, in the app's language:
+/// kernels name them in English. Those not known here stay as they are.
 KernelOption localizedKernelOption(
   AppLocalizations l10n,
   String kernel,
@@ -12,6 +11,18 @@ KernelOption localizedKernelOption(
   KernelOption option,
 ) {
   final text = switch ((kernel, kind, option.id)) {
+    ('claude-code', KernelChoiceKind.mode, 'agent') => (
+      l10n.composerModeAgent,
+      l10n.composerModeAgentDetail,
+    ),
+    ('claude-code', KernelChoiceKind.mode, 'ask') => (
+      l10n.composerModeAsk,
+      l10n.composerModeAskDetail,
+    ),
+    ('claude-code', KernelChoiceKind.mode, 'plan') => (
+      l10n.composerModePlan,
+      l10n.composerModePlanDetail,
+    ),
     ('claude-code', KernelChoiceKind.permission, 'default') => (
       l10n.composerApprovalDefault,
       l10n.composerApprovalDefaultDetail,

@@ -505,7 +505,7 @@ void main() {
     expect(ActivityRow.musingsFor(_zh), hasLength(ActivityRow.musings.length));
   });
 
-  test('Claude Code\'s approvals are localized, its modes are not', () {
+  test('Claude Code\'s approvals and modes are localized', () {
     final kernel = ClaudeCodeKernel(
       MockKernels.claudeCode,
       const KernelContext(cwd: '/p'),
@@ -534,17 +534,22 @@ void main() {
         (option.id, option.icon, option.caution),
       );
     }
-    // The modes are named alike in every language.
     for (final option in kernel.mode.options) {
-      expect(
-        localizedKernelOption(
-          _zh,
-          'claude-code',
-          KernelChoiceKind.mode,
-          option,
-        ),
-        same(option),
+      final en = localizedKernelOption(
+        englishLocalizations,
+        'claude-code',
+        KernelChoiceKind.mode,
+        option,
       );
+      expect(en, option);
+      final zh = localizedKernelOption(
+        _zh,
+        'claude-code',
+        KernelChoiceKind.mode,
+        option,
+      );
+      expect(zh.label, isNot(option.label));
+      expect((zh.id, zh.icon), (option.id, option.icon));
     }
     final acceptEdits = kernel.permission.options[1];
     expect(

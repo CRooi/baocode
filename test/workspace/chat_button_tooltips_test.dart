@@ -238,8 +238,8 @@ void main() {
     }, variant: _mac);
   });
 
-  testWidgets('the suggested prompt shows the key that takes it, as the '
-      'keybindings have it', (tester) async {
+  testWidgets('the suggested prompt shows alone, without the key that '
+      'takes it', (tester) async {
     final session = ChatSession(
       kernel: MockKernels.claudeCode,
       historyCount: 0,
@@ -269,14 +269,6 @@ void main() {
       of: find.byType(ChatComposer),
       matching: find.text(text, findRichText: true),
     );
-    expect(placeholder('Run the tests    Tab'), findsOneWidget);
-
-    KeybindingService.instance.userEntries = const [
-      KeybindingEntry(command: '-${ChatCommandIds.acceptPromptSuggestion}'),
-    ];
-    // As the window builds again.
-    tester.element(find.byType(ChatComposer)).markNeedsBuild();
-    await tester.pump();
     expect(placeholder('Run the tests    Tab'), findsNothing);
     expect(placeholder('Run the tests'), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));

@@ -5000,10 +5000,46 @@ abstract class AppLocalizations {
   /// **'Deny whatever is not pre-approved'**
   String get composerApprovalDontAskDetail;
 
+  /// No description provided for @composerModeAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent'**
+  String get composerModeAgent;
+
+  /// No description provided for @composerModeAgentDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan, edit and run code'**
+  String get composerModeAgentDetail;
+
+  /// No description provided for @composerModeAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask'**
+  String get composerModeAsk;
+
+  /// No description provided for @composerModeAskDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk it through, suggest changes'**
+  String get composerModeAskDetail;
+
+  /// No description provided for @composerModePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get composerModePlan;
+
+  /// No description provided for @composerModePlanDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Research and plan, then build'**
+  String get composerModePlanDetail;
+
   /// No description provided for @composerApprovalFullAccess.
   ///
   /// In en, this message translates to:
-  /// **'Full access'**
+  /// **'Bypass permissions'**
   String get composerApprovalFullAccess;
 
   /// No description provided for @composerApprovalFullAccessDetail.
@@ -5041,6 +5077,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Effort'**
   String get composerSettingEffort;
+
+  /// In the simple model picker: the entry that opens every other model.
+  ///
+  /// In en, this message translates to:
+  /// **'More models'**
+  String get composerMoreModels;
 
   /// No description provided for @composerNoResults.
   ///
@@ -5539,6 +5581,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 queued} other{{count} queued}} · sent when the agent is done'**
   String queuedMessages(int count);
+
+  /// No description provided for @queuedIntoTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 message} other{{count} messages}} about to go into the current task'**
+  String queuedIntoTurn(int count);
 
   /// No description provided for @queuedImages.
   ///
@@ -12435,6 +12483,12 @@ abstract class AppLocalizations {
   /// **'Chat bubbles'**
   String get appearanceSettingsUserMessageStyleBubble;
 
+  /// User message style: chat bubbles at the right, without the tail at the bubble's bottom right corner.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat bubbles, no tail'**
+  String get appearanceSettingsUserMessageStyleRoundedBubble;
+
   /// No description provided for @appearanceSettingsUserMessageStyleLabel.
   ///
   /// In en, this message translates to:
@@ -12500,6 +12554,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'As a reply comes: {choice}'**
   String appearanceSettingsReplyScrollLabel(String choice);
+
+  /// No description provided for @appearanceSettingsMusingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking Lines\' Language'**
+  String get appearanceSettingsMusingsLanguage;
+
+  /// No description provided for @appearanceSettingsMusingsLanguageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The language of the lines shown while the agent thinks (\"Pondering\", \"Noodling\"…), the app\'s or another.'**
+  String get appearanceSettingsMusingsLanguageDescription;
+
+  /// No description provided for @appearanceSettingsMusingsLanguageApp.
+  ///
+  /// In en, this message translates to:
+  /// **'As the app'**
+  String get appearanceSettingsMusingsLanguageApp;
+
+  /// No description provided for @appearanceSettingsMusingsLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking lines\' language: {choice}'**
+  String appearanceSettingsMusingsLanguageLabel(String choice);
+
+  /// No description provided for @appearanceSettingsFoldLongMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Fold Long Messages'**
+  String get appearanceSettingsFoldLongMessages;
+
+  /// No description provided for @appearanceSettingsFoldLongMessagesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A long message you sent shows its first lines until clicked open. Off: all of it.'**
+  String get appearanceSettingsFoldLongMessagesDescription;
+
+  /// No description provided for @appearanceSettingsExpandThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Thinking Open'**
+  String get appearanceSettingsExpandThinking;
+
+  /// No description provided for @appearanceSettingsExpandThinkingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The model\'s thinking shows open, until you close it. Off: it stays closed, while it is written too.'**
+  String get appearanceSettingsExpandThinkingDescription;
 
   /// No description provided for @appearanceSettingsMinimap.
   ///
@@ -13094,6 +13196,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hide'**
   String get tipsHide;
+
+  /// Setup card: skips the setup for good; neither the card nor the sidebar entry shows again.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get tipsSkip;
 
   /// No description provided for @tipsTurnOn.
   ///
@@ -15074,6 +15182,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A button in the message box that has the auxiliary model make what you wrote a clearer, more specific prompt before you send it'**
   String get generalSettingsComposerPolishDescription;
+
+  /// No description provided for @generalSettingsAgentModeOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Always Use Agent Mode'**
+  String get generalSettingsAgentModeOnly;
+
+  /// No description provided for @generalSettingsAgentModeOnlyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Every message is sent in Agent mode, and the mode picker is hidden from the message box'**
+  String get generalSettingsAgentModeOnlyDescription;
+
+  /// No description provided for @generalSettingsContinueLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Lists'**
+  String get generalSettingsContinueLists;
+
+  /// No description provided for @generalSettingsContinueListsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A new line in a bulleted or numbered list starts with the next item\'s bullet or number; a new line on an empty item ends the list'**
+  String get generalSettingsContinueListsDescription;
+
+  /// No description provided for @generalSettingsSimpleModelPicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple Model Picker'**
+  String get generalSettingsSimpleModelPicker;
+
+  /// No description provided for @generalSettingsSimpleModelPickerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'With Claude Code\'s CLI, the model picker lists the newest Opus, Sonnet, Fable and Haiku at 200k context, with the effort beside them; other models are under More models'**
+  String get generalSettingsSimpleModelPickerDescription;
 
   /// No description provided for @generalSettingsLiveTurnStats.
   ///

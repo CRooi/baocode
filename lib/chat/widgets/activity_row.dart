@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../base/step_clock.dart';
 import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
+import '../chat_display_settings.dart';
 import '../chat_models.dart';
 import 'markdown_view.dart';
 import 'step_header.dart';
@@ -104,10 +105,17 @@ class ActivityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Reveal(visible: visible, child: _row(context.l10n));
+    return _Reveal(
+      visible: visible,
+      child: ValueListenableBuilder(
+        valueListenable: MusingsLanguage.current,
+        builder: (context, language, _) => _row(context.l10n, language),
+      ),
+    );
   }
 
-  Widget _row(AppLocalizations l10n) {
+  Widget _row(AppLocalizations l10n, MusingsLanguage language) {
+    final musings = language.of(l10n);
     return Align(
       alignment: Alignment.centerLeft,
       // Lined up with the steps around it.
@@ -121,10 +129,10 @@ class ActivityRow extends StatelessWidget {
             Flexible(
               child: _Musing(
                 whimsical
-                    ? musingsFor(l10n)
+                    ? musingsFor(musings)
                     : [localizedActivityLabel(label, l10n)],
                 cued: switch (cue) {
-                  final cue? when whimsical => cuedMusingsFor(cue, l10n),
+                  final cue? when whimsical => cuedMusingsFor(cue, musings),
                   _ => const [],
                 },
                 // Folding away, it goes on as it was.

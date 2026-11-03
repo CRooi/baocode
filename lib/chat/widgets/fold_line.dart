@@ -76,7 +76,7 @@ class StepsFoldLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final count = TextStyle(color: AppColors.text, fontWeight: FontWeight.w600);
+    final count = TextStyle(fontWeight: FontWeight.w600);
     final faint = TextStyle(color: AppColors.textFaint);
     final actions = _actions(tally, l10n);
     return _FoldSemantics(

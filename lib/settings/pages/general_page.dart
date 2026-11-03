@@ -12,6 +12,7 @@ import '../../kernel/claude_code/claude_path_setting.dart';
 import '../../kernel/commit_attribution.dart';
 import '../../kernel/prompt_suggestions.dart';
 import '../../chat/composer/composer_polish.dart' show ComposerPolishSetting;
+import '../../chat/composer/composer_settings.dart';
 import '../../chat/widgets/turn_footer.dart' show LiveTurnStatsSetting;
 import '../../kernel/queued_messages.dart';
 import '../../l10n/l10n.dart';
@@ -372,6 +373,39 @@ class GeneralSettingsPage extends StatelessWidget {
                   onChanged: (on) => _write(
                     ComposerPolishSetting.settingKey,
                     on ? null : ComposerPolishSetting.off,
+                  ),
+                ),
+                SettingsSwitchRow(
+                  label: l10n.generalSettingsContinueLists,
+                  description: l10n.generalSettingsContinueListsDescription,
+                  value: ListContinuationSetting.enabled(
+                    settings?[ListContinuationSetting.settingKey],
+                  ),
+                  onChanged: (on) => _write(
+                    ListContinuationSetting.settingKey,
+                    on ? null : ListContinuationSetting.off,
+                  ),
+                ),
+                SettingsSwitchRow(
+                  label: l10n.generalSettingsAgentModeOnly,
+                  description: l10n.generalSettingsAgentModeOnlyDescription,
+                  value: AgentModeOnlySetting.enabled(
+                    settings?[AgentModeOnlySetting.settingKey],
+                  ),
+                  onChanged: (on) => _write(
+                    AgentModeOnlySetting.settingKey,
+                    on ? AgentModeOnlySetting.on : null,
+                  ),
+                ),
+                SettingsSwitchRow(
+                  label: l10n.generalSettingsSimpleModelPicker,
+                  description: l10n.generalSettingsSimpleModelPickerDescription,
+                  value: SimpleModelPickerSetting.enabled(
+                    settings?[SimpleModelPickerSetting.settingKey],
+                  ),
+                  onChanged: (on) => _write(
+                    SimpleModelPickerSetting.settingKey,
+                    on ? SimpleModelPickerSetting.on : null,
                   ),
                 ),
                 SettingsSwitchRow(

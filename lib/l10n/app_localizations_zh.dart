@@ -2209,17 +2209,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String durationSeconds(int seconds) {
-    return '$seconds秒';
+    return '$seconds 秒';
   }
 
   @override
   String durationMinutesSeconds(int minutes, int seconds) {
-    return '$minutes分$seconds秒';
+    return '$minutes 分 $seconds 秒';
   }
 
   @override
   String durationHoursMinutes(int hours, int minutes) {
-    return '$hours小时$minutes分';
+    return '$hours 小时 $minutes 分';
   }
 
   @override
@@ -2258,7 +2258,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get stepThinking => '正在思考';
 
   @override
-  String get stepThought => '已思考';
+  String get stepThought => '思考';
 
   @override
   String get stepBriefly => '片刻';
@@ -2775,7 +2775,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get composerApprovalDontAskDetail => '未预先允许的一律拒绝';
 
   @override
-  String get composerApprovalFullAccess => '完全访问';
+  String get composerModeAgent => '智能体';
+
+  @override
+  String get composerModeAgentDetail => '规划、编辑并运行代码';
+
+  @override
+  String get composerModeAsk => '问答';
+
+  @override
+  String get composerModeAskDetail => '只讨论，给出修改建议';
+
+  @override
+  String get composerModePlan => '规划';
+
+  @override
+  String get composerModePlanDetail => '先调研和规划，再动手实现';
+
+  @override
+  String get composerApprovalFullAccess => '跳过权限确认';
 
   @override
   String get composerApprovalFullAccessDetail => '不做任何检查，编辑和命令直接执行';
@@ -2794,6 +2812,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get composerSettingEffort => '推理强度';
+
+  @override
+  String get composerMoreModels => '更多模型';
 
   @override
   String get composerNoResults => '无结果';
@@ -3109,6 +3130,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String queuedMessages(int count) {
     return '$count 条排队中 · 当前任务结束后依次发送';
+  }
+
+  @override
+  String queuedIntoTurn(int count) {
+    return '即将向当前任务插入 $count 条';
   }
 
   @override
@@ -7202,6 +7228,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appearanceSettingsUserMessageStyleBubble => '用户对话风格';
 
   @override
+  String get appearanceSettingsUserMessageStyleRoundedBubble => '用户对话风格（无尖角）';
+
+  @override
   String appearanceSettingsUserMessageStyleLabel(String style) {
     return '用户消息样式：$style';
   }
@@ -7241,6 +7270,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String appearanceSettingsReplyScrollLabel(String choice) {
     return '回复时滚动：$choice';
   }
+
+  @override
+  String get appearanceSettingsMusingsLanguage => '思考提示语言';
+
+  @override
+  String get appearanceSettingsMusingsLanguageDescription =>
+      'Agent 思考时显示的提示语（“冥思苦想”“琢磨一下”等）用哪种语言，可以和界面语言不同。';
+
+  @override
+  String get appearanceSettingsMusingsLanguageApp => '跟随界面';
+
+  @override
+  String appearanceSettingsMusingsLanguageLabel(String choice) {
+    return '思考提示语言：$choice';
+  }
+
+  @override
+  String get appearanceSettingsFoldLongMessages => '折叠长消息';
+
+  @override
+  String get appearanceSettingsFoldLongMessagesDescription =>
+      '你发送的长消息只显示开头几行，点击展开。关闭后完整显示。';
+
+  @override
+  String get appearanceSettingsExpandThinking => '默认展开思考内容';
+
+  @override
+  String get appearanceSettingsExpandThinkingDescription =>
+      '模型的思考内容默认展开，直到你手动收起。关闭时思考过程中也保持收起。';
 
   @override
   String get appearanceSettingsMinimap => '对话缩略图';
@@ -7633,6 +7691,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tipsHide => '收起';
+
+  @override
+  String get tipsSkip => '跳过';
 
   @override
   String get tipsTurnOn => '开启';
@@ -8748,6 +8809,27 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get generalSettingsComposerPolishDescription =>
       '在输入框里显示提示词增强按钮，发送前用辅助模型把写的内容改写成更清楚、更具体的提示词';
+
+  @override
+  String get generalSettingsAgentModeOnly => '始终使用智能体模式';
+
+  @override
+  String get generalSettingsAgentModeOnlyDescription =>
+      '每条消息都以智能体模式发送，输入框里不再显示模式选择器';
+
+  @override
+  String get generalSettingsContinueLists => '自动续接列表';
+
+  @override
+  String get generalSettingsContinueListsDescription =>
+      '在有序或无序列表里换行时，自动补上下一项的符号或序号；在空的列表项上换行则结束列表';
+
+  @override
+  String get generalSettingsSimpleModelPicker => '精简模型选择器';
+
+  @override
+  String get generalSettingsSimpleModelPickerDescription =>
+      '使用 Claude Code CLI 时，模型选择器只列出最新的 Opus、Sonnet、Fable 和 Haiku，固定 200k 上下文，并直接显示推理强度设置；其他模型放在“更多模型”里';
 
   @override
   String get generalSettingsLiveTurnStats => '运行时实时显示详细速率和时间';

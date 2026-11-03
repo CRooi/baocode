@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import '../../channel/channel_setup.dart' show ChannelSetup;
 import '../../ide/ide_dialog.dart';
 import '../../kernel/agent_kernel.dart';
+import '../../kernel/claude_code/claude_core_setting.dart';
 import '../../kernel/kernel_types.dart';
 import '../../l10n/l10n.dart';
-import '../../models/model_provider.dart' show parseModelRef;
+import '../../models/model_provider.dart' show builtinProviderId, parseModelRef;
 import '../../models/model_providers.dart';
 import '../../models/model_runtime.dart' show codexService;
 import '../../models/model_welcome.dart';
@@ -19,6 +20,7 @@ import '../chat_session.dart';
 import '../resume_after_reset.dart';
 import '../widgets/hover_builder.dart';
 import 'composer_picker.dart';
+import 'composer_settings.dart';
 
 /// The pill that picks [session]'s model, each model's settings (its
 /// effort, its context) beside it: the composer's, and the one a plan is
@@ -45,9 +47,8 @@ class SessionModelPicker extends StatelessWidget {
   final Object? tapRegionGroupId;
   final FocusNode? focusNode;
 
-  /// The model with its settings, e.g. "Opus · 1M · High": the context
-  /// only when it is not the standard one; its upstream before it only
-  /// when another upstream has a model of its name.
+  /// The model, e.g. "Opus 5.5": its upstream before it only when another
+  /// upstream has a model of its name.
   String _label(KernelOption model, List<KernelOption> options) => [
     if (model.group case final group?
         when options.any(
@@ -55,12 +56,20 @@ class SessionModelPicker extends StatelessWidget {
         ))
       group.label,
     model.label,
-    for (final setting in session.modelSettings(model.id))
-      if (setting.selected case final selected?
-          when setting.kind != KernelChoiceKind.context ||
-              selected != setting.options.first)
-        selected.label,
-  ].join(' · ');
+  ].join(' ');
+
+  /// Its settings after it, fainter, e.g. "1M High": the context only when
+  /// it is not the standard one; null with none.
+  String? _settingsLabel(KernelOption model) {
+    final labels = [
+      for (final setting in session.modelSettings(model.id))
+        if (setting.selected case final selected?
+            when setting.kind != KernelChoiceKind.context ||
+                selected != setting.options.first)
+          selected.label,
+    ];
+    return labels.isEmpty ? null : labels.join(' ');
+  }
 
   /// Runs [pick], which switches to [option]: once confirmed, if that
   /// restarts the agent on another upstream mid-conversation.
@@ -139,10 +148,162 @@ class SessionModelPicker extends StatelessWidget {
     // Its switches turned, as settings.json says.
     listenable: Listenable.merge([
       ?ResumeAfterResetSetting.changes,
+      ?SimpleModelPickerSetting.changes,
       ModelProviders.current,
     ]),
     builder: (context, _) => _build(context),
   );
+
+  /// The families the simple picker lists, in its order.
+  static const _families = ['opus', 'sonnet', 'fable', 'haiku'];
+
+  /// The context the simple picker keeps each model on.
+  static const _simpleContext = '200k';
+
+  /// Ids of the simple picker's own rows, apart from the models'.
+  static const _effortRow = '\u0000effort';
+  static const _moreRow = '\u0000more';
+  static const _effortPrefix = '\u0000effort:';
+
+  /// Of Claude Code's own models (the CLI's), the newest of each of
+  /// [_families], in that order: the family's alias (`opus`) first, else
+  /// the one named for it with the highest version. None where the CLI's
+  /// models are not known yet.
+  @visibleForTesting
+  static List<KernelOption> newestOfFamilies(List<KernelOption> options) {
+    final builtin = [
+      for (final option in options)
+        if (option.group?.id == builtinProviderId && option.id != 'default')
+          option,
+    ];
+    int version(KernelOption option) {
+      final digits = RegExp(r'\d+').allMatches(option.id);
+      var value = 0;
+      for (final match in digits.take(3)) {
+        value = value * 1000 + int.parse(match[0]!);
+      }
+      return value;
+    }
+
+    KernelOption? newest(String family) =>
+        builtin.where((o) => o.id == family).firstOrNull ??
+        (builtin
+                .where(
+                  (o) =>
+                      o.id.toLowerCase().contains(family) ||
+                      o.label.toLowerCase().contains(family),
+                )
+                .toList()
+              ..sort((a, b) => version(b) - version(a)))
+            .firstOrNull;
+
+    return [for (final family in _families) ?newest(family)];
+  }
+
+  /// The simple picker (Settings → General), on Claude Code's CLI: the
+  /// newest of each family, the effort, and the rest under More models.
+  /// Null where it does not apply, for the full one.
+  Widget? _buildSimple(BuildContext context, KernelChoice model) {
+    if (!SimpleModelPickerSetting.current() ||
+        session.kernel.id != 'claude-code' ||
+        ClaudeCore.current() != ClaudeCore.cli) {
+      return null;
+    }
+    final newest = newestOfFamilies(model.options);
+    if (newest.isEmpty) return null;
+    final l10n = context.l10n;
+    final rest = [
+      for (final option in model.options)
+        if (!newest.contains(option)) option,
+    ];
+    final effort = session
+        .modelSettings(model.selected.id)
+        .where((setting) => setting.kind == KernelChoiceKind.effort)
+        .firstOrNull;
+    final efforts = [
+      for (final option in effort?.options ?? const <KernelOption>[])
+        KernelOption(
+          '$_effortPrefix${option.id}',
+          option.label,
+          option.icon,
+          '',
+        ),
+    ];
+    final effortRow = KernelOption(
+      _effortRow,
+      l10n.composerSettingEffort,
+      Icons.speed_rounded,
+      '',
+    );
+    final moreRow = KernelOption(
+      _moreRow,
+      l10n.composerMoreModels,
+      Icons.more_horiz_rounded,
+      '',
+    );
+
+    /// [option] picked, kept on the simple picker's context.
+    void pickModel(KernelOption option) => unawaited(
+      _switch(context, option, () {
+        model.onSelected(option);
+        final contextSize = session
+            .modelSettings(option.id)
+            .where((setting) => setting.kind == KernelChoiceKind.context)
+            .firstOrNull;
+        if (contextSize == null || contextSize.selected?.id == _simpleContext) {
+          return;
+        }
+        if (contextSize.options.where((o) => o.id == _simpleContext).firstOrNull
+            case final standard?) {
+          contextSize.onSelected(standard);
+        }
+      }),
+    );
+
+    return ComposerPicker(
+      key: pickerKey,
+      options: [
+        ...newest,
+        if (efforts.isNotEmpty) effortRow,
+        if (rest.isNotEmpty) moreRow,
+      ],
+      selected: model.selected,
+      label: _label(model.selected, model.options),
+      labelAside: _settingsLabel(model.selected),
+      describes: false,
+      submenuOf: (option) => switch (option.id) {
+        _effortRow => efforts,
+        _moreRow => rest,
+        _ => const [],
+      },
+      checks: (option) => option.id.startsWith(_effortPrefix)
+          ? option.id == '$_effortPrefix${effort?.selected?.id}'
+          : option == model.selected,
+      tooltip: tooltip,
+      menuWidth: 260,
+      footers: [
+        if (SettingsOpener.maybeOf(context) case final open?)
+          (
+            label: ChannelSetup.channelBuild
+                ? l10n.channelAccountTitle
+                : l10n.modelsManage,
+            icon: Icons.tune_rounded,
+            onTap: () => open(SettingsSection.models),
+          ),
+      ],
+      tapRegionGroupId: tapRegionGroupId,
+      focusNode: focusNode,
+      onSelected: (option) {
+        if (option.id.startsWith(_effortPrefix)) {
+          final id = option.id.substring(_effortPrefix.length);
+          final level = effort?.options.where((o) => o.id == id).firstOrNull;
+          if (effort != null && level != null) effort.onSelected(level);
+          return;
+        }
+        pickModel(option);
+      },
+    );
+  }
 
   Widget _build(BuildContext context) {
     final model = session.models;
@@ -154,11 +315,13 @@ class SessionModelPicker extends StatelessWidget {
         onTap: () => unawaited(showModelWelcome(context)),
       );
     }
+    if (_buildSimple(context, model) case final simple?) return simple;
     return ComposerPicker(
       key: pickerKey,
       options: model.options,
       selected: model.selected,
       label: _label(model.selected, model.options),
+      labelAside: _settingsLabel(model.selected),
       // Each its name alone, one line; its maker's logo and its upstream's
       // heading tell the rest.
       describes: false,

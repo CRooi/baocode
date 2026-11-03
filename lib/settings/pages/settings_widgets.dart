@@ -249,24 +249,27 @@ class SettingsGroup extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     // 28 between groups, as Cursor's sections.
     padding: const EdgeInsets.only(top: 8),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 4, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: SettingsText.heading),
-              if (description case final description?) ...[
-                const SizedBox(height: 2),
-                Text(description, style: SettingsText.headingDescription),
+    child: SettingsTargetHighlight(
+      label: title,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 4, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: SettingsText.heading),
+                if (description case final description?) ...[
+                  const SizedBox(height: 2),
+                  Text(description, style: SettingsText.headingDescription),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
-        SettingsCard(children: children),
-      ],
+          SettingsCard(children: children),
+        ],
+      ),
     ),
   );
 }
@@ -454,14 +457,18 @@ class SettingsRow extends StatelessWidget {
             ),
     );
     final onTap = this.onTap;
-    if (onTap == null) return row;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: row,
-      ),
+    return SettingsTargetHighlight(
+      label: label,
+      child: onTap == null
+          ? row
+          : MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onTap,
+                child: row,
+              ),
+            ),
     );
   }
 }
@@ -694,5 +701,108 @@ class SettingsButtons extends StatelessWidget {
         child,
       ],
     ],
+  );
+}
+
+/// The setting the dialog's search went to, by its label: its row (or
+/// group) scrolls into view and lights up a moment. A new [serial] each
+/// time it is gone to, the same setting again too.
+class SettingsTarget extends InheritedWidget {
+  const SettingsTarget({
+    super.key,
+    required this.label,
+    required this.serial,
+    required super.child,
+  });
+
+  final String? label;
+  final int serial;
+
+  /// The serial [label] is gone to with in [context]'s page; null when it
+  /// is not the one.
+  static int? serialFor(BuildContext context, String label) {
+    final target = context.dependOnInheritedWidgetOfExactType<SettingsTarget>();
+    return target != null && target.label == label ? target.serial : null;
+  }
+
+  @override
+  bool updateShouldNotify(SettingsTarget oldWidget) =>
+      label != oldWidget.label || serial != oldWidget.serial;
+}
+
+/// [child], scrolled into view and lit up a moment when it is the
+/// [SettingsTarget] ([label]).
+class SettingsTargetHighlight extends StatefulWidget {
+  const SettingsTargetHighlight({
+    super.key,
+    required this.label,
+    required this.child,
+    this.borderRadius = 12,
+  });
+
+  final String label;
+  final Widget child;
+  final double borderRadius;
+
+  @override
+  State<SettingsTargetHighlight> createState() =>
+      _SettingsTargetHighlightState();
+}
+
+class _SettingsTargetHighlightState extends State<SettingsTargetHighlight>
+    with SingleTickerProviderStateMixin {
+  late final _glow = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  );
+  int? _shown;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final serial = SettingsTarget.serialFor(context, widget.label);
+    if (serial == null || serial == _shown) return;
+    _shown = serial;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.3,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+      );
+      _glow.forward(from: 0);
+    });
+  }
+
+  @override
+  void dispose() {
+    _glow.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _glow,
+    child: widget.child,
+    builder: (context, child) {
+      // Lit at once, then fading over the second half.
+      final t = _glow.isAnimating
+          ? (1 - Curves.easeIn.transform(((_glow.value - 0.5) * 2).clamp(0, 1)))
+          : 0.0;
+      final color = themeColors['focusBorder'];
+      // The same tree lit or not, so what is in it keeps its state.
+      return DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: t == 0
+            ? const BoxDecoration()
+            : BoxDecoration(
+                color: color.withValues(alpha: color.a * 0.12 * t),
+                borderRadius: BorderRadius.circular(widget.borderRadius),
+                border: Border.all(color: color.withValues(alpha: color.a * t)),
+              ),
+        child: child,
+      );
+    },
   );
 }

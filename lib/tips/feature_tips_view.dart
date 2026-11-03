@@ -68,6 +68,11 @@ class FeatureTipsCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 _TextAction(
+                  label: l10n.tipsSkip,
+                  onTap: () => unawaited(controller.skip()),
+                ),
+                const SizedBox(width: 4),
+                _TextAction(
                   label: l10n.tipsHide,
                   onTap: () => unawaited(controller.collapse()),
                 ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -489,11 +490,45 @@ abstract final class WindowControls {
       'selectAll' => const SelectAllTextIntent(cause),
       _ => null,
     };
-    final context = FocusManager.instance.primaryFocus?.context;
-    if (intent != null && context != null) {
-      Actions.maybeInvoke(context, intent);
+    if (intent == null) return;
+    final focus = FocusManager.instance;
+    void run() {
+      final context = focus.primaryFocus?.context;
+      if (context != null) Actions.maybeInvoke(context, intent);
     }
+
+    // The app just made active again: its focus, put by while it was not
+    // (see FocusManager), may not be back yet. A clipboard manager pastes
+    // so, its ⌘V close behind the app's return from its panel: run once
+    // the focus is back, not on nothing.
+    if (focus.primaryFocus == null || focus.primaryFocus == focus.rootScope) {
+      _pendingEdit?.call();
+      Timer? timeout;
+      late final VoidCallback back;
+      void cancel() {
+        timeout?.cancel();
+        focus.removeListener(back);
+        if (_pendingEdit == cancel) _pendingEdit = null;
+      }
+
+      back = () {
+        if (focus.primaryFocus == null ||
+            focus.primaryFocus == focus.rootScope) {
+          return;
+        }
+        cancel();
+        run();
+      };
+      focus.addListener(back);
+      timeout = Timer(const Duration(milliseconds: 500), cancel);
+      _pendingEdit = cancel;
+      return;
+    }
+    run();
   }
+
+  /// Drops the edit command waiting for the focus to come back, if any.
+  static VoidCallback? _pendingEdit;
 
   /// Whether menus can be the system's own. Linux has a GTK menu; its Paste
   /// reads the clipboard in the item's activation, which Wayland allows.

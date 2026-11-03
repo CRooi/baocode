@@ -3400,7 +3400,7 @@ class ClaudeCodeKernel
     ),
     KernelOption(
       'bypassPermissions',
-      'Full access',
+      'Bypass permissions',
       Icons.gpp_maybe_outlined,
       'No checks: edits and commands run without asking',
       caution: true,

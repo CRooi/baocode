@@ -1048,6 +1048,7 @@ class _SidebarState extends State<Sidebar>
           if (widget.onCustomize case final customize?)
             _NavRow(
               icon: Codicons.plug,
+              iconSize: 17,
               label: context.l10n.sidebarCustomize,
               selected: widget.customizing,
               onTap: customize,
@@ -2531,11 +2532,16 @@ class _NavRow extends StatelessWidget {
     this.selected = false,
     this.badge = 0,
     this.badgeHover,
+    this.iconSize = 15,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+
+  /// Larger for a glyph drawn small in its box, to look as large as the
+  /// others.
+  final double iconSize;
 
   /// How many new things it has, at its end; none when 0. [badgeHover]
   /// says what they are.
@@ -2574,15 +2580,24 @@ class _NavRow extends StatelessWidget {
                 child: ExcludeSemantics(
                   child: Row(
                     children: [
-                      Icon(
-                        icon,
-                        size: 15,
-                        color: selected
-                            ? themeColors.get(
-                                    'list.activeSelectionIconForeground',
-                                  ) ??
-                                  foreground
-                            : AppColors.textMuted,
+                      // In the same room as the others', the label lined
+                      // up with theirs, though [iconSize] is larger.
+                      SizedBox.square(
+                        dimension: 15,
+                        child: OverflowBox(
+                          maxWidth: iconSize,
+                          maxHeight: iconSize,
+                          child: Icon(
+                            icon,
+                            size: iconSize,
+                            color: selected
+                                ? themeColors.get(
+                                        'list.activeSelectionIconForeground',
+                                      ) ??
+                                      foreground
+                                : AppColors.textMuted,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(

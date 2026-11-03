@@ -30,9 +30,7 @@ class ComposerController extends MarkdownController {
     var shown = offset;
     for (final run in MdAtoms.parse(text)) {
       if (run.start >= offset) break;
-      shown -= offset >= run.end
-          ? run.end - run.start - 1
-          : offset - run.start;
+      shown -= offset >= run.end ? run.end - run.start - 1 : offset - run.start;
     }
     return shown;
   }

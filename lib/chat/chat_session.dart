@@ -13,6 +13,7 @@ import '../remote/remote_location.dart';
 import 'chat_feed.dart';
 import 'chat_models.dart';
 import 'composer/composer_draft.dart';
+import 'composer/composer_settings.dart';
 import 'composer/paste_store.dart';
 import 'mock_conversation.dart';
 import 'open_editor.dart';
@@ -1133,6 +1134,14 @@ class ChatSession extends ChangeNotifier implements ChatFeed {
     List<String> notes = const [],
   }) {
     if (message.isEmpty || !canSend) return;
+    // Agent always (Settings → General): the mode picker hidden, a mode
+    // kept from before is put back to Agent with the message.
+    if (AgentModeOnlySetting.current()) {
+      if (modes case final modes? when modes.selected.id != 'agent') {
+        final agent = modes.options.where((o) => o.id == 'agent').firstOrNull;
+        if (agent != null) modes.onSelected(agent);
+      }
+    }
     final turn = KernelTurn(
       id: newTurnId(),
       // Pastes too long to send, kept in files the agent reads; a remote

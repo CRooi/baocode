@@ -10,6 +10,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bao_markdown/bao_markdown.dart';
+import 'package:baocode/chat/chat_display_settings.dart';
 import 'package:baocode/chat/widgets/activity_row.dart';
 import 'package:baocode/sidebar/sidebar.dart';
 import 'package:baocode/workspace/workspace.dart';
@@ -114,6 +115,9 @@ Matcher isSelection(int base, int extent) => isA<TextSelection>()
 void main() {
   testWidgets('the answers sit inset from the user\'s messages by their '
       'corner radius', (tester) async {
+    tester.view.physicalSize = const Size(800, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await pumpScreen(tester);
     final items = tester.widgetList<ChatItemView>(find.byType(ChatItemView));
     double width(bool user) => tester
@@ -348,9 +352,10 @@ void main() {
       expect(position.pixels, position.maxScrollExtent);
     });
 
-    testWidgets('streams open in a capped box, then settles closed', (
-      tester,
-    ) async {
+    testWidgets('shown open, it streams in a capped box and stays open once '
+        'done', (tester) async {
+      ExpandThinking.current.value = true;
+      addTearDown(() => ExpandThinking.current.value = false);
       final session = await pumpScreen(tester);
       await typeText(tester, 'build the composer');
       await pressKey(tester, LogicalKeyboardKey.enter);
@@ -400,12 +405,12 @@ void main() {
       expect(position().pixels, greaterThan(0));
       expect(liveMask(tester).top, isTrue);
 
-      // Done: closed, with its time.
+      // Done: still open, with its time.
       for (var i = 0; i < 150 && section(tester).seconds == null; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
       await settleAnimations(tester);
-      expect(section(tester).expanded, isFalse);
+      expect(section(tester).expanded, isTrue);
       expect(
         find.descendant(
           of: liveThought(),
@@ -420,7 +425,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     });
 
-    testWidgets('the user can close and reopen it while it streams', (
+    testWidgets('it streams closed; the user can open, close and reopen it', (
       tester,
     ) async {
       final session = await pumpScreen(tester);
@@ -431,6 +436,12 @@ void main() {
         of: liveThought(),
         matching: find.textContaining('Thinking'),
       );
+      expect(section(tester).seconds, isNull);
+      expect(section(tester).expanded, isFalse);
+
+      await tester.tap(header);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(section(tester).expanded, isTrue);
 
       await tester.tap(header);
       await tester.pump(const Duration(milliseconds: 100));
@@ -1332,8 +1343,8 @@ void main() {
           .widgetList<Text>(
             find.descendant(of: modePill, matching: find.byType(Text)),
           )
-          .first
-          .data!;
+          .map((text) => text.data ?? text.textSpan!.toPlainText())
+          .first;
     }
 
     expect(

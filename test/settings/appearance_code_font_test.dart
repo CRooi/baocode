@@ -63,8 +63,9 @@ void main() {
       'removed from it', (tester) async {
     final settings = await pumpPage(tester);
     // The color theme's dropdown comes first, then the user messages', the
-    // reply's scroll, the two loaders', then the code font's.
-    final dropdown = find.byType(SettingsDropdown).at(6);
+    // edits', the reply's scroll, the musings' language, the two loaders',
+    // then the code font's.
+    final dropdown = find.byType(SettingsDropdown).at(7);
     Future<void> choose(String label) async {
       await tester.tap(dropdown);
       await tester.pumpAndSettle();
@@ -216,7 +217,7 @@ void main() {
   ) async {
     final settings = await pumpPage(tester);
     // After the color theme's, the user messages', the edits' and the
-    // reply's scroll:
+    // reply's scroll, and the musings' language:
     // the agent's, then the subagent's.
     Future<void> choose(int dropdown, String label) async {
       await tester.tap(find.byType(SettingsDropdown).at(dropdown));
@@ -226,7 +227,7 @@ void main() {
     }
 
     expect(find.text('Fill and empty'), findsNWidgets(2));
-    await choose(4, 'Pixel rain');
+    await choose(5, 'Pixel rain');
     expect(PixelLoaderRole.agent.style.value, PixelLoaderStyle.rain);
     expect(PixelLoaderRole.subagent.style.value, PixelLoaderStyle.fill);
     expect(settings.written['chat.agentLoadingStyle'], 'rain');
@@ -250,7 +251,7 @@ void main() {
     expect(settings.written['chat.subagentLoadingSpeed'], isNull);
 
     // The ring keeps its own pace: no slider for it.
-    await choose(4, 'Ring (classic)');
+    await choose(5, 'Ring (classic)');
     expect(settings.written['chat.agentLoadingStyle'], 'circle');
     expect(
       find.byWidgetPredicate(
@@ -260,7 +261,7 @@ void main() {
       ),
       findsNothing,
     );
-    await choose(4, 'Fill and empty');
+    await choose(5, 'Fill and empty');
     expect(settings.written.containsKey('chat.agentLoadingStyle'), isTrue);
     expect(settings.written['chat.agentLoadingStyle'], isNull);
     await leave(tester);

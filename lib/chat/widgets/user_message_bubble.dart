@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import '../../theme/app_theme.dart';
 import '../chat_find.dart';
+import '../chat_display_settings.dart';
 import '../chat_models.dart';
 import '../composer/composer_embeds.dart';
 import '../user_message_style.dart';
@@ -64,11 +65,11 @@ class UserMessageBubble extends StatefulWidget {
     visit(item);
     final box = found?.child;
     if (box == null || !box.attached || !box.hasSize) return null;
-    final fitted = UserMessageStyle.current.value == UserMessageStyle.bubble;
+    final style = UserMessageStyle.current.value;
     return (
       rect: box.localToGlobal(Offset.zero) & box.size,
-      radius: fitted ? _MessageShape.radius : radius,
-      tail: fitted ? 1.0 : 0.0,
+      radius: style.fitted ? _MessageShape.radius : radius,
+      tail: style.tail ? 1.0 : 0.0,
     );
   }
 
@@ -184,15 +185,18 @@ class _UserMessageBubbleState extends State<UserMessageBubble> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: UserMessageStyle.current,
-      builder: (context, style, _) => _build(context, style),
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        UserMessageStyle.current,
+        FoldLongMessages.current,
+      ]),
+      builder: (context, _) => _build(context, UserMessageStyle.current.value),
     );
   }
 
   Widget _build(BuildContext context, UserMessageStyle style) {
-    final fitted = style == UserMessageStyle.bubble;
-    final message = _buildBubble(context, fitted: fitted);
+    final fitted = style.fitted;
+    final message = _buildBubble(context, fitted: fitted, tail: style.tail);
     // As tall a tree either way, the bubble moving nowhere as the style
     // changes. Fitted: at the right, as wide as its text up to most of the
     // column; the Align takes the column's width, which centers what is
@@ -209,7 +213,11 @@ class _UserMessageBubbleState extends State<UserMessageBubble> {
   /// The most of the column a [UserMessageStyle.bubble] bubble takes.
   static const _fittedWidth = 0.85;
 
-  Widget _buildBubble(BuildContext context, {required bool fitted}) {
+  Widget _buildBubble(
+    BuildContext context, {
+    required bool fitted,
+    required bool tail,
+  }) {
     final vocabulary = ComposerVocabulary.of(context);
     return Listener(
       onPointerDown: _handleDown,
@@ -230,6 +238,7 @@ class _UserMessageBubbleState extends State<UserMessageBubble> {
                   color: AppColors.bubbleFill,
                   shape: _MessageShape(
                     side: BorderSide(color: AppColors.bubbleBorder()),
+                    tail: tail ? 1 : 0,
                   ),
                 )
               : BoxDecoration(
@@ -243,8 +252,10 @@ class _UserMessageBubbleState extends State<UserMessageBubble> {
               shrinkWrap: fitted,
               collapsedHeight: _lineHeight * _collapsedLines,
               // All of it while it holds the find's match at hand, which
-              // may be in the lines it hides.
-              collapseAbove: ChatFindRow.holdsCurrent(context)
+              // may be in the lines it hides; always, not folding.
+              collapseAbove:
+                  !FoldLongMessages.current.value ||
+                      ChatFindRow.holdsCurrent(context)
                   ? double.infinity
                   : _lineHeight * (_collapsedLines + 1),
               content: InlineCodeText(
@@ -277,7 +288,8 @@ class UserMessagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fitted = UserMessageStyle.current.value == UserMessageStyle.bubble;
+    final style = UserMessageStyle.current.value;
+    final fitted = style.fitted;
     final bubble = Container(
       constraints: fitted
           ? const BoxConstraints()
@@ -288,6 +300,7 @@ class UserMessagePreview extends StatelessWidget {
               color: AppColors.bubbleFill,
               shape: _MessageShape(
                 side: BorderSide(color: AppColors.bubbleBorder()),
+                tail: style.tail ? 1 : 0,
               ),
             )
           : BoxDecoration(
@@ -858,27 +871,31 @@ class _RenderWidthFactor extends RenderProxyBox {
 /// its sender, as a chat's. The tail takes a strip at the right
 /// ([dimensions]), the body the rest.
 class _MessageShape extends OutlinedBorder {
-  const _MessageShape({super.side});
+  const _MessageShape({super.side, this.tail = 1});
 
   static const radius = 10.0;
   static const tailWidth = 7.0;
 
+  /// How much of the tail it has: 1, all; 0, none (a rounded rectangle).
+  final double tail;
+
   @override
-  EdgeInsetsGeometry get dimensions => const EdgeInsets.only(right: tailWidth);
+  EdgeInsetsGeometry get dimensions => EdgeInsets.only(right: tailWidth * tail);
 
   @override
   _MessageShape copyWith({BorderSide? side}) =>
-      _MessageShape(side: side ?? this.side);
+      _MessageShape(side: side ?? this.side, tail: tail);
 
   @override
-  ShapeBorder scale(double t) => _MessageShape(side: side.scale(t));
+  ShapeBorder scale(double t) => _MessageShape(side: side.scale(t), tail: tail);
 
   @override
   Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
-      _path(rect.deflate(side.strokeInset));
+      _path(rect.deflate(side.strokeInset), tail: tail);
 
   @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) => _path(rect);
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) =>
+      _path(rect, tail: tail);
 
   /// The outline in [rect], with [tail] of the tail (0: none, a rounded
   /// rectangle's corner in its place) and corners of [radius].

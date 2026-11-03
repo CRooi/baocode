@@ -10,16 +10,28 @@ enum UserMessageStyle {
 
   /// A bubble at the right, as wide as its text (to most of the column),
   /// scrolling away with the rest.
-  bubble;
+  bubble,
+
+  /// As [bubble], without its tail: all four corners round.
+  roundedBubble;
 
   static const settingKey = 'chat.userMessageStyle';
 
   /// [value] as settings.json has it.
-  static UserMessageStyle parse(Object? value) =>
-      value == sticky.name ? sticky : bubble;
+  static UserMessageStyle parse(Object? value) => switch (value) {
+    'sticky' => sticky,
+    'roundedBubble' => roundedBubble,
+    _ => bubble,
+  };
 
   /// As settings.json keeps it; null (not written) for [bubble].
   Object? get setting => this == bubble ? null : name;
+
+  /// Whether a message is a bubble at the right, as wide as its text.
+  bool get fitted => this != sticky;
+
+  /// Whether its bubble has a tail.
+  bool get tail => this == bubble;
 
   /// The style the chats follow now; main() keeps it to settings.json
   /// ([follow]).

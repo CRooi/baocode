@@ -20,6 +20,7 @@ import 'browser/browser_tools.dart' show BrowserHistory;
 import 'chat/composer/composer_files.dart' show ComposerFile, pastedAsPicture;
 import 'chat/chat_width.dart';
 import 'chat/reply_scroll.dart';
+import 'chat/chat_display_settings.dart';
 import 'chat/edit_detail.dart';
 import 'chat/user_message_style.dart';
 import 'chat/widgets/chat_minimap.dart';
@@ -61,6 +62,7 @@ import 'kernel/commit_attribution.dart';
 import 'kernel/extension_switches.dart';
 import 'kernel/prompt_suggestions.dart';
 import 'chat/composer/composer_polish.dart' show ComposerPolishSetting;
+import 'chat/composer/composer_settings.dart';
 import 'kernel/queued_messages.dart';
 import 'keybindings/keybindings_sync.dart';
 import 'link/link_host.dart';
@@ -477,6 +479,20 @@ void followSettingsFiles(SettingsFiles files) {
     files.settings[ComposerPolishSetting.settingKey],
   );
   ComposerPolishSetting.changes = files.settings;
+  // The composer's switches: Agent always, lists continued, the model
+  // picker cut short; followed as they change.
+  AgentModeOnlySetting.current = () => AgentModeOnlySetting.enabled(
+    files.settings[AgentModeOnlySetting.settingKey],
+  );
+  AgentModeOnlySetting.changes = files.settings;
+  ListContinuationSetting.current = () => ListContinuationSetting.enabled(
+    files.settings[ListContinuationSetting.settingKey],
+  );
+  ListContinuationSetting.changes = files.settings;
+  SimpleModelPickerSetting.current = () => SimpleModelPickerSetting.enabled(
+    files.settings[SimpleModelPickerSetting.settingKey],
+  );
+  SimpleModelPickerSetting.changes = files.settings;
   // The turn under way's line of figures, shown or not as it changes.
   LiveTurnStatsSetting.current = () => LiveTurnStatsSetting.enabled(
     files.settings[LiveTurnStatsSetting.settingKey],
@@ -578,6 +594,20 @@ void followSettingsFiles(SettingsFiles files) {
   ReplyScroll.keep(
     files.settings,
     () => files.settings[ReplyScroll.settingKey],
+  );
+  // Settings → Appearance: the musings' language, long messages folded,
+  // thoughts open.
+  MusingsLanguage.follow(
+    files.settings,
+    () => files.settings[MusingsLanguage.settingKey],
+  );
+  FoldLongMessages.follow(
+    files.settings,
+    () => files.settings[FoldLongMessages.settingKey],
+  );
+  ExpandThinking.follow(
+    files.settings,
+    () => files.settings[ExpandThinking.settingKey],
   );
   // Settings → Appearance: whether the conversation has a minimap, how
   // opaque its glass is and how much it stretches.

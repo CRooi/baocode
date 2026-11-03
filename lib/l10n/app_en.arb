@@ -1779,7 +1779,13 @@
   "composerApprovalAutoDetail": "Run what is safe, block what looks risky",
   "composerApprovalDontAsk": "Don't ask",
   "composerApprovalDontAskDetail": "Deny whatever is not pre-approved",
-  "composerApprovalFullAccess": "Full access",
+  "composerModeAgent": "Agent",
+  "composerModeAgentDetail": "Plan, edit and run code",
+  "composerModeAsk": "Ask",
+  "composerModeAskDetail": "Talk it through, suggest changes",
+  "composerModePlan": "Plan",
+  "composerModePlanDetail": "Research and plan, then build",
+  "composerApprovalFullAccess": "Bypass permissions",
   "composerApprovalFullAccessDetail": "No checks: edits and commands run without asking",
   "composerContextUsage": "Context usage",
   "composerSend": "Send  ↵",
@@ -1791,6 +1797,10 @@
   "composerSettingEffort": "Effort",
   "@composerSettingEffort": {
     "description": "Heading of the model's reasoning effort choices."
+  },
+  "composerMoreModels": "More models",
+  "@composerMoreModels": {
+    "description": "In the simple model picker: the entry that opens every other model."
   },
   "composerNoResults": "No results",
   "stripOpen": "Open {name}",
@@ -2080,6 +2090,14 @@
   "mcpProbeNote": "Started and greeted with MCP's initialize, as `claude mcp list` checks it.",
   "queuedMessages": "{count, plural, =1{1 queued} other{{count} queued}} · sent when the agent is done",
   "@queuedMessages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "queuedIntoTurn": "{count, plural, =1{1 message} other{{count} messages}} about to go into the current task",
+  "@queuedIntoTurn": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -5432,6 +5450,10 @@
   "appearanceSettingsUserMessageStyleDescription": "How the messages you send show in the conversation: as wide as it, the one you are reading under staying at the top as you scroll; or as chat bubbles at the right that scroll away.",
   "appearanceSettingsUserMessageStyleSticky": "Full width, sticks to the top",
   "appearanceSettingsUserMessageStyleBubble": "Chat bubbles",
+  "appearanceSettingsUserMessageStyleRoundedBubble": "Chat bubbles, no tail",
+  "@appearanceSettingsUserMessageStyleRoundedBubble": {
+    "description": "User message style: chat bubbles at the right, without the tail at the bubble's bottom right corner."
+  },
   "appearanceSettingsUserMessageStyleLabel": "Your messages: {style}",
   "@appearanceSettingsUserMessageStyleLabel": {
     "placeholders": {
@@ -5464,6 +5486,21 @@
       }
     }
   },
+  "appearanceSettingsMusingsLanguage": "Thinking Lines' Language",
+  "appearanceSettingsMusingsLanguageDescription": "The language of the lines shown while the agent thinks (\"Pondering\", \"Noodling\"…), the app's or another.",
+  "appearanceSettingsMusingsLanguageApp": "As the app",
+  "appearanceSettingsMusingsLanguageLabel": "Thinking lines' language: {choice}",
+  "@appearanceSettingsMusingsLanguageLabel": {
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "appearanceSettingsFoldLongMessages": "Fold Long Messages",
+  "appearanceSettingsFoldLongMessagesDescription": "A long message you sent shows its first lines until clicked open. Off: all of it.",
+  "appearanceSettingsExpandThinking": "Show Thinking Open",
+  "appearanceSettingsExpandThinkingDescription": "The model's thinking shows open, until you close it. Off: it stays closed, while it is written too.",
   "appearanceSettingsMinimap": "Conversation Minimap",
   "appearanceSettingsMinimapDescription": "A minimap of the whole conversation at the left of its column, where you are in it shown as you scroll; click or drag it to get somewhere. It stands in for the scrollbar, and is not shown in a window too narrow for it. Off: the scrollbar.",
   "appearanceSettingsWindowBlur": "Native Window Blur",
@@ -5886,6 +5923,10 @@
     }
   },
   "tipsHide": "Hide",
+  "tipsSkip": "Skip",
+  "@tipsSkip": {
+    "description": "Setup card: skips the setup for good; neither the card nor the sidebar entry shows again."
+  },
   "tipsTurnOn": "Turn On",
   "tipsDismiss": "Close",
   "tipsDone": "Done",
@@ -6635,6 +6676,12 @@
   },
   "generalSettingsComposerPolish": "Enhance Prompt button",
   "generalSettingsComposerPolishDescription": "A button in the message box that has the auxiliary model make what you wrote a clearer, more specific prompt before you send it",
+  "generalSettingsAgentModeOnly": "Always Use Agent Mode",
+  "generalSettingsAgentModeOnlyDescription": "Every message is sent in Agent mode, and the mode picker is hidden from the message box",
+  "generalSettingsContinueLists": "Continue Lists",
+  "generalSettingsContinueListsDescription": "A new line in a bulleted or numbered list starts with the next item's bullet or number; a new line on an empty item ends the list",
+  "generalSettingsSimpleModelPicker": "Simple Model Picker",
+  "generalSettingsSimpleModelPickerDescription": "With Claude Code's CLI, the model picker lists the newest Opus, Sonnet, Fable and Haiku at 200k context, with the effort beside them; other models are under More models",
   "generalSettingsLiveTurnStats": "Live Speed and Time",
   "generalSettingsLiveTurnStatsDescription": "While the agent works, a line under the reply with how long the turn has taken, how fast the model writes and the tokens so far, changing as it goes. The figures under a finished turn always show.",
   "usageLimitScheduled": "Usage limit reached · continues automatically after it resets at {time}",

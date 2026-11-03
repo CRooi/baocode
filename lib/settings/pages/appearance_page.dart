@@ -10,6 +10,7 @@ import '../../chat/chat_keys.dart';
 import '../../chat/chat_width.dart';
 import '../../chat/edit_detail.dart';
 import '../../chat/reply_scroll.dart';
+import '../../chat/chat_display_settings.dart';
 import '../../chat/user_message_style.dart';
 import '../../chat/widgets/chat_minimap.dart';
 import '../../chat/widgets/pixel_loader.dart';
@@ -166,6 +167,8 @@ class AppearanceSettingsPage extends StatelessWidget {
           context.l10n.appearanceSettingsUserMessageStyleSticky,
         UserMessageStyle.bubble =>
           context.l10n.appearanceSettingsUserMessageStyleBubble,
+        UserMessageStyle.roundedBubble =>
+          context.l10n.appearanceSettingsUserMessageStyleRoundedBubble,
       };
 
   void _selectStyle(UserMessageStyle style) {
@@ -193,6 +196,22 @@ class AppearanceSettingsPage extends StatelessWidget {
   void _selectReplyScroll(ReplyScroll choice) {
     ReplyScroll.current.value = choice;
     _keep(ReplyScroll.settingKey, choice.setting);
+  }
+
+  /// Chinese and English each in its own words, as language pickers name
+  /// them.
+  static String _musingsLanguageName(
+    BuildContext context,
+    MusingsLanguage language,
+  ) => switch (language) {
+    MusingsLanguage.app => context.l10n.appearanceSettingsMusingsLanguageApp,
+    MusingsLanguage.zh => '中文',
+    MusingsLanguage.en => 'English',
+  };
+
+  void _selectMusingsLanguage(MusingsLanguage language) {
+    MusingsLanguage.current.value = language;
+    _keep(MusingsLanguage.settingKey, language.setting);
   }
 
   void _selectMinimap(bool on) {
@@ -384,6 +403,9 @@ class AppearanceSettingsPage extends StatelessWidget {
         UserMessageStyle.current,
         EditDetail.current,
         ReplyScroll.current,
+        MusingsLanguage.current,
+        FoldLongMessages.current,
+        ExpandThinking.current,
         ChatMinimap.enabled,
         ChatMinimap.glass,
         ChatMinimap.elasticity,
@@ -409,6 +431,10 @@ class AppearanceSettingsPage extends StatelessWidget {
         final replyScrollShown = _replyScrollName(
           context,
           ReplyScroll.current.value,
+        );
+        final musingsShown = _musingsLanguageName(
+          context,
+          MusingsLanguage.current.value,
         );
         final glass = ChatMinimap.glass.value;
         final glassShown = '${(glass * 100).round()}%';
@@ -541,6 +567,53 @@ class AppearanceSettingsPage extends StatelessWidget {
                       ],
                     ]),
                   ),
+                ),
+                SettingsRow(
+                  label: l10n.appearanceSettingsMusingsLanguage,
+                  description:
+                      l10n.appearanceSettingsMusingsLanguageDescription,
+                  trailing: SettingsDropdown(
+                    current: musingsShown,
+                    width: 220,
+                    semanticLabel: l10n.appearanceSettingsMusingsLanguageLabel(
+                      musingsShown,
+                    ),
+                    entries: () => ideMenuGroups([
+                      [
+                        for (final language in MusingsLanguage.values)
+                          IdeMenuAction(
+                            _musingsLanguageName(context, language),
+                            checked: language == MusingsLanguage.current.value,
+                            onSelected: () => _selectMusingsLanguage(language),
+                          ),
+                      ],
+                    ]),
+                  ),
+                ),
+                SettingsSwitchRow(
+                  label: l10n.appearanceSettingsFoldLongMessages,
+                  description:
+                      l10n.appearanceSettingsFoldLongMessagesDescription,
+                  value: FoldLongMessages.current.value,
+                  onChanged: (on) {
+                    FoldLongMessages.current.value = on;
+                    _keep(
+                      FoldLongMessages.settingKey,
+                      FoldLongMessages.setting(on),
+                    );
+                  },
+                ),
+                SettingsSwitchRow(
+                  label: l10n.appearanceSettingsExpandThinking,
+                  description: l10n.appearanceSettingsExpandThinkingDescription,
+                  value: ExpandThinking.current.value,
+                  onChanged: (on) {
+                    ExpandThinking.current.value = on;
+                    _keep(
+                      ExpandThinking.settingKey,
+                      ExpandThinking.setting(on),
+                    );
+                  },
                 ),
                 SettingsSwitchRow(
                   label: l10n.appearanceSettingsMinimap,

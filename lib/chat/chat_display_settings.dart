@@ -1,0 +1,81 @@
+import 'package:flutter/widgets.dart';
+
+import '../l10n/l10n.dart';
+
+/// Settings → Appearance's choices of what a conversation shows, each as
+/// settings.json has it; main() keeps each `current` to settings.json.
+
+/// The language of the lines a status row muses while the agent thinks
+/// ("Pondering", "冥思苦想"…): the app's, or one of its own.
+/// settings.json's `chat.musingsLanguage`; unset, [app].
+enum MusingsLanguage {
+  app,
+  zh,
+  en;
+
+  static const settingKey = 'chat.musingsLanguage';
+
+  static MusingsLanguage parse(Object? value) => switch (value) {
+    'zh' => zh,
+    'en' => en,
+    _ => app,
+  };
+
+  /// As settings.json keeps it; null (not written) for [app].
+  Object? get setting => this == app ? null : name;
+
+  /// The strings the musings are in, [l10n] being the app's.
+  AppLocalizations of(AppLocalizations l10n) => switch (this) {
+    app => l10n,
+    zh => lookupAppLocalizations(const Locale('zh')),
+    en => lookupAppLocalizations(const Locale('en')),
+  };
+
+  static final ValueNotifier<MusingsLanguage> current = ValueNotifier(app);
+
+  /// Sets [current] from [read] now and whenever [changes] notifies.
+  static void follow(Listenable changes, Object? Function() read) {
+    void update() => current.value = parse(read());
+    update();
+    changes.addListener(update);
+  }
+}
+
+/// Whether a long message the user sent shows its first lines only until
+/// opened. settings.json's `chat.foldLongMessages`; unset, on.
+abstract final class FoldLongMessages {
+  static const settingKey = 'chat.foldLongMessages';
+
+  static bool parse(Object? value) => value != false;
+
+  /// As settings.json keeps it; null (not written) when on.
+  static Object? setting(bool on) => on ? null : false;
+
+  static final ValueNotifier<bool> current = ValueNotifier(true);
+
+  static void follow(Listenable changes, Object? Function() read) {
+    void update() => current.value = parse(read());
+    update();
+    changes.addListener(update);
+  }
+}
+
+/// Whether the model's thoughts show open, as they stream and once done,
+/// until closed by hand; else closed, while they stream too, until opened.
+/// settings.json's `chat.expandThinking`; unset, off.
+abstract final class ExpandThinking {
+  static const settingKey = 'chat.expandThinking';
+
+  static bool parse(Object? value) => value == true;
+
+  /// As settings.json keeps it; null (not written) when off.
+  static Object? setting(bool on) => on ? true : null;
+
+  static final ValueNotifier<bool> current = ValueNotifier(false);
+
+  static void follow(Listenable changes, Object? Function() read) {
+    void update() => current.value = parse(read());
+    update();
+    changes.addListener(update);
+  }
+}

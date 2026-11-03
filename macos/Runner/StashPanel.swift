@@ -135,6 +135,10 @@ final class StashPanel: NSPanel, FlutterHostWindow {
         return true
       }
     }
+    if BaoWindow.isPostedPaste(event, in: self) {
+      editCommand("paste")
+      return true
+    }
     return super.performKeyEquivalent(with: event)
   }
 

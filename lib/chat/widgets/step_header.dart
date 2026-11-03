@@ -102,10 +102,7 @@ class StepHeader extends StatelessWidget {
         : Text.rich(
             TextSpan(
               children: [
-                TextSpan(
-                  text: verb,
-                  style: TextStyle(color: AppColors.text),
-                ),
+                TextSpan(text: verb),
                 if (object.isNotEmpty)
                   TextSpan(text: verb.isEmpty ? object : ' $object'),
                 if (detail case final detail? when detail.isNotEmpty)

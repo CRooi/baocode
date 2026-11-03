@@ -514,8 +514,35 @@ class BaoWindow: NSWindow {
   @objc func baocodePaste(_ sender: Any?) { editCommand("paste") }
   @objc func baocodeSelectAll(_ sender: Any?) { editCommand("selectAll") }
 
+  /// Whether [event] is a ⌘V another app posted (a clipboard manager, as
+  /// Raycast's, Maccy's, pastes so) while Flutter's view, not its text
+  /// input, takes the keys: just made key again, the window's text field
+  /// is not back yet. The view would take the V alone, ⌘ not being down,
+  /// and paste nothing; the Edit menu's Paste goes to where the focus is,
+  /// once it is back (see WindowControls.runEditCommand).
+  static func isPostedPaste(_ event: NSEvent, in window: NSWindow) -> Bool {
+    guard event.type == .keyDown,
+      event.modifierFlags.intersection([.command, .shift, .option, .control]) == .command,
+      event.charactersIgnoringModifiers?.lowercased() == "v",
+      !(window.firstResponder is NSTextInputClient)
+    else { return false }
+    // ⌘ itself not held: the event was posted, not typed.
+    let leftCommand: CGKeyCode = 0x37
+    let rightCommand: CGKeyCode = 0x36
+    return !CGEventSource.keyState(.hidSystemState, key: leftCommand)
+      && !CGEventSource.keyState(.hidSystemState, key: rightCommand)
+  }
+
   private func editCommand(_ command: String) {
     channel?.invokeMethod("editCommand", arguments: command)
+  }
+
+  override func performKeyEquivalent(with event: NSEvent) -> Bool {
+    if Self.isPostedPaste(event, in: self) {
+      editCommand("paste")
+      return true
+    }
+    return super.performKeyEquivalent(with: event)
   }
 
   // The app menu's Preferences… (⌘,): the app's settings, which ⌘, opens

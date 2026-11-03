@@ -2878,7 +2878,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Deny whatever is not pre-approved';
 
   @override
-  String get composerApprovalFullAccess => 'Full access';
+  String get composerModeAgent => 'Agent';
+
+  @override
+  String get composerModeAgentDetail => 'Plan, edit and run code';
+
+  @override
+  String get composerModeAsk => 'Ask';
+
+  @override
+  String get composerModeAskDetail => 'Talk it through, suggest changes';
+
+  @override
+  String get composerModePlan => 'Plan';
+
+  @override
+  String get composerModePlanDetail => 'Research and plan, then build';
+
+  @override
+  String get composerApprovalFullAccess => 'Bypass permissions';
 
   @override
   String get composerApprovalFullAccessDetail =>
@@ -2898,6 +2916,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get composerSettingEffort => 'Effort';
+
+  @override
+  String get composerMoreModels => 'More models';
 
   @override
   String get composerNoResults => 'No results';
@@ -3229,6 +3250,17 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 queued',
     );
     return '$_temp0 · sent when the agent is done';
+  }
+
+  @override
+  String queuedIntoTurn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count messages',
+      one: '1 message',
+    );
+    return '$_temp0 about to go into the current task';
   }
 
   @override
@@ -7665,6 +7697,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appearanceSettingsUserMessageStyleBubble => 'Chat bubbles';
 
   @override
+  String get appearanceSettingsUserMessageStyleRoundedBubble =>
+      'Chat bubbles, no tail';
+
+  @override
   String appearanceSettingsUserMessageStyleLabel(String style) {
     return 'Your messages: $style';
   }
@@ -7704,6 +7740,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String appearanceSettingsReplyScrollLabel(String choice) {
     return 'As a reply comes: $choice';
   }
+
+  @override
+  String get appearanceSettingsMusingsLanguage => 'Thinking Lines\' Language';
+
+  @override
+  String get appearanceSettingsMusingsLanguageDescription =>
+      'The language of the lines shown while the agent thinks (\"Pondering\", \"Noodling\"…), the app\'s or another.';
+
+  @override
+  String get appearanceSettingsMusingsLanguageApp => 'As the app';
+
+  @override
+  String appearanceSettingsMusingsLanguageLabel(String choice) {
+    return 'Thinking lines\' language: $choice';
+  }
+
+  @override
+  String get appearanceSettingsFoldLongMessages => 'Fold Long Messages';
+
+  @override
+  String get appearanceSettingsFoldLongMessagesDescription =>
+      'A long message you sent shows its first lines until clicked open. Off: all of it.';
+
+  @override
+  String get appearanceSettingsExpandThinking => 'Show Thinking Open';
+
+  @override
+  String get appearanceSettingsExpandThinkingDescription =>
+      'The model\'s thinking shows open, until you close it. Off: it stays closed, while it is written too.';
 
   @override
   String get appearanceSettingsMinimap => 'Conversation Minimap';
@@ -8101,6 +8166,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipsHide => 'Hide';
+
+  @override
+  String get tipsSkip => 'Skip';
 
   @override
   String get tipsTurnOn => 'Turn On';
@@ -9259,6 +9327,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get generalSettingsComposerPolishDescription =>
       'A button in the message box that has the auxiliary model make what you wrote a clearer, more specific prompt before you send it';
+
+  @override
+  String get generalSettingsAgentModeOnly => 'Always Use Agent Mode';
+
+  @override
+  String get generalSettingsAgentModeOnlyDescription =>
+      'Every message is sent in Agent mode, and the mode picker is hidden from the message box';
+
+  @override
+  String get generalSettingsContinueLists => 'Continue Lists';
+
+  @override
+  String get generalSettingsContinueListsDescription =>
+      'A new line in a bulleted or numbered list starts with the next item\'s bullet or number; a new line on an empty item ends the list';
+
+  @override
+  String get generalSettingsSimpleModelPicker => 'Simple Model Picker';
+
+  @override
+  String get generalSettingsSimpleModelPickerDescription =>
+      'With Claude Code\'s CLI, the model picker lists the newest Opus, Sonnet, Fable and Haiku at 200k context, with the effort beside them; other models are under More models';
 
   @override
   String get generalSettingsLiveTurnStats => 'Live Speed and Time';

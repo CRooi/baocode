@@ -18,7 +18,12 @@ class QueuePanel extends StatelessWidget {
     required this.onEdit,
     required this.onSendNow,
     required this.onRemove,
+    this.intoTurn = false,
   });
+
+  /// Whether they go into the turn running, between its tool calls,
+  /// rather than after it (`chat.queuedMessages`).
+  final bool intoTurn;
 
   /// With their ids, the next first.
   final List<(String, UserMessageItem)> messages;
@@ -54,7 +59,9 @@ class QueuePanel extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  l10n.queuedMessages(messages.length),
+                  intoTurn
+                      ? l10n.queuedIntoTurn(messages.length)
+                      : l10n.queuedMessages(messages.length),
                   style: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,

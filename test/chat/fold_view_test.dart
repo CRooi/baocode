@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:baocode/chat/chat_display_settings.dart';
 import 'package:baocode/chat/chat_feed.dart';
 import 'package:baocode/chat/chat_history_view.dart';
 import 'package:baocode/chat/chat_models.dart';
@@ -197,29 +198,31 @@ void main() {
     expect(_text('needle'), findsNothing);
   });
 
-  testWidgets('a thought of a blink stays closed; a longer one opens as it '
-      'streams', (tester) async {
-    List<ChatItem> turn({int? seconds}) => [
-      const UserMessageItem(text: 'Fix the bug'),
-      ThinkingItem(text: 'Where is the needle', tokens: 4, seconds: seconds),
-      const LiveStatusItem('Planning next move', visible: false),
-    ];
-    final feed = _Feed(turn(), streaming: true);
-    // Its words as they stream.
-    final words = find.byType(LiveSelectableText);
+  List<ChatItem> thinkingTurn({int? seconds}) => [
+    const UserMessageItem(text: 'Fix the bug'),
+    ThinkingItem(text: 'Where is the needle', tokens: 4, seconds: seconds),
+    const LiveStatusItem('Planning next move', visible: false),
+  ];
+  // A thought's words as they stream.
+  final words = find.byType(LiveSelectableText);
+
+  testWidgets('a thought stays closed as it streams, unless the settings '
+      'show thoughts open', (tester) async {
+    final feed = _Feed(thinkingTurn(), streaming: true);
     await _pump(tester, feed);
-    expect(words, findsNothing);
-    feed.update(turn(seconds: 0), streaming: true);
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(milliseconds: 301));
+    await tester.pump(const Duration(milliseconds: 400));
     expect(words, findsNothing);
     expect(_text('Where is the needle'), findsNothing);
+  });
 
-    feed.update([
-      ...turn(seconds: 0).take(2),
-      ...turn().skip(1),
-    ], streaming: true);
-    await tester.pump();
+  testWidgets('shown open, a thought opens as it streams, once past a '
+      'blink', (tester) async {
+    ExpandThinking.current.value = true;
+    addTearDown(() => ExpandThinking.current.value = false);
+    final feed = _Feed(thinkingTurn(), streaming: true);
+    await _pump(tester, feed);
+    expect(words, findsNothing);
     await tester.pump(const Duration(milliseconds: 301));
     await tester.pump(const Duration(milliseconds: 400));
     expect(words, findsOneWidget);

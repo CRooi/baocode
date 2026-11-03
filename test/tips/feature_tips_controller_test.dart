@@ -184,6 +184,25 @@ void main() {
       expect(tips.doneCount, 1);
     });
 
+    test('skipped, neither the card nor the sidebar entry shows again, '
+        'until Show Setup Guide', () async {
+      final a = _Feature('a');
+      final b = _Feature('b');
+      var tips = await launch([a, b]);
+      await tips.skip();
+      expect(tips.cardVisible, isFalse);
+      expect(tips.entryVisible, isFalse);
+
+      tips = await launch([a, b]);
+      expect(tips.cardVisible, isFalse);
+      expect(tips.entryVisible, isFalse);
+
+      await tips.restore();
+      expect(tips.cardVisible, isTrue);
+      tips = await launch([a, b]);
+      expect(tips.cardVisible, isTrue);
+    });
+
     test('restored (Show Setup Guide), the card is back with what was '
         'closed', () async {
       final a = _Feature('a');

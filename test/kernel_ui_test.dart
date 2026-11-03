@@ -69,8 +69,10 @@ Future<void> runWhile(WidgetTester tester, bool Function() condition) async {
   await tester.pump(const Duration(milliseconds: 300));
 }
 
-Finder picker(String label) =>
-    find.ancestor(of: find.text(label), matching: find.byType(ComposerPicker));
+Finder picker(String label) => find.ancestor(
+  of: find.text(label, findRichText: true),
+  matching: find.byType(ComposerPicker),
+);
 
 /// A Claude Code session on a CLI the test speaks for, a message sent.
 Future<({ChatSession session, FakeCli cli})> pumpScripted(
@@ -790,7 +792,7 @@ void main() {
       find.descendant(
         of: find.byType(ChatComposer),
         matching: find.text(
-          r'Run release\win-unpacked\BaoCode.exe then open "C:\Users"    Tab',
+          r'Run release\win-unpacked\BaoCode.exe then open "C:\Users"',
           findRichText: true,
         ),
       ),
@@ -1160,15 +1162,16 @@ void main() {
     expect(caret, findsNothing);
   });
 
-  testWidgets('the composer\'s pickers start at the left, its actions end '
-      'at the right', (tester) async {
+  testWidgets('the composer\'s pickers sit under its box at the right, its '
+      'actions end the box', (tester) async {
     await pumpSession(tester, MockKernels.claudeCode);
     await tester.pump();
-    final box = tester.getRect(find.byType(ChatComposer));
-    final first = tester.getRect(find.byType(ComposerPicker).first);
+    final composer = tester.getRect(find.byType(ChatComposer));
+    final last = tester.getRect(find.byType(ComposerPicker).last);
     final send = tester.getRect(find.byTooltip('Send (Enter)'));
-    expect(first.left - box.left, lessThan(12));
-    expect(box.right - send.right, lessThan(12));
+    expect(last.top, greaterThan(send.bottom));
+    expect(composer.right - last.right, lessThan(12));
+    expect(composer.right - send.right, lessThan(12));
   });
 
   testWidgets('the model menu lists models only; context and effort are '
@@ -1184,11 +1187,11 @@ void main() {
     }
 
     await tester.pump(const Duration(milliseconds: 100));
-    expect(picker('Auto · High'), findsOneWidget);
+    expect(picker('Auto High'), findsOneWidget);
 
     // One row a model, without its description: Opus's 1M variant is in
     // its settings.
-    await tester.tap(picker('Auto · High'));
+    await tester.tap(picker('Auto High'));
     await settle();
     expect(find.text('Opus 5.5'), findsOneWidget);
     expect(find.text('Opus 5.5 (1M context)'), findsNothing);
@@ -1205,20 +1208,21 @@ void main() {
     expect(find.text('Effort'), findsOneWidget);
     expect(find.text('Max'), findsOneWidget);
     final opus = tester.getRect(find.text('Opus 5.5'));
+    // The picker at the composer's right, they open to its left.
     final settings = tester.getRect(find.text('Context'));
-    expect(settings.left, greaterThan(opus.right));
+    expect(settings.right, lessThan(opus.left));
 
     // Picking one picks the model with it.
     await tester.tap(find.text('1M'));
     await settle();
     expect(find.text('Context'), findsNothing);
-    expect(picker('Opus 5.5 · 1M · High'), findsOneWidget);
+    expect(picker('Opus 5.5 1M High'), findsOneWidget);
     expect(session.context?.window, 1000000);
 
     // By keys: down to Sonnet, → into its settings (at the context in
     // effect, 1M), down to its lowest effort. Near its start: the test font makes it long, its end scrolled away.
     await tester.tapAt(
-      tester.getTopLeft(picker('Opus 5.5 · 1M · High')) + const Offset(20, 11),
+      tester.getTopLeft(picker('Opus 5.5 1M High')) + const Offset(20, 11),
     );
     await settle();
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
@@ -1230,7 +1234,7 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await settle();
     // Its own window is 200K: no more to pick, nor to show.
-    expect(picker('Sonnet 5 · Low'), findsOneWidget);
+    expect(picker('Sonnet 5 Low'), findsOneWidget);
     expect(session.context?.window, 200000);
   });
 
@@ -1242,7 +1246,7 @@ void main() {
     await pumpSession(tester, MockKernels.claudeCode);
     await tester.pump(const Duration(milliseconds: 100));
     await tester.tapAt(
-      tester.getTopLeft(picker('Auto · High')) + const Offset(20, 11),
+      tester.getTopLeft(picker('Auto High')) + const Offset(20, 11),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -1268,7 +1272,7 @@ void main() {
     await tester.tap(find.text('Low'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(picker('Opus 5.5 · Low'), findsOneWidget);
+    expect(picker('Opus 5.5 Low'), findsOneWidget);
   });
 
   testWidgets('one settings menu moves between models: crossing a model on '
@@ -1279,7 +1283,7 @@ void main() {
     await pumpSession(tester, MockKernels.claudeCode);
     await tester.pump(const Duration(milliseconds: 100));
     await tester.tapAt(
-      tester.getTopLeft(picker('Auto · High')) + const Offset(20, 11),
+      tester.getTopLeft(picker('Auto High')) + const Offset(20, 11),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -1293,14 +1297,15 @@ void main() {
     addTearDown(mouse.removePointer);
 
     final opus = row('Opus 5.5');
-    await mouse.moveTo(opus.centerLeft + const Offset(30, 0));
+    await mouse.moveTo(opus.centerRight - const Offset(30, 0));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
     expect(find.text('Max'), findsOneWidget);
 
-    // Down and across towards it, over Sonnet: still Opus's.
+    // Down and across towards it (to the left, the picker at the
+    // composer's right), over Sonnet: still Opus's.
     final sonnet = row('Sonnet 5');
-    await mouse.moveTo(Offset(sonnet.right - 6, sonnet.center.dy));
+    await mouse.moveTo(Offset(sonnet.left + 6, sonnet.center.dy));
     await tester.pump();
     expect(find.text('Max'), findsOneWidget);
     // Resting on Sonnet: its settings (no Max), in the same menu.
@@ -1345,7 +1350,7 @@ void main() {
     await tester.tap(picker('Ask for approval'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('How should Claude Code get approval?'), findsOneWidget);
-    final fullAccess = tester.widget<Text>(find.text('Full access'));
+    final fullAccess = tester.widget<Text>(find.text('Bypass permissions'));
     expect(fullAccess.style?.color, AppColors.caution);
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pump(const Duration(milliseconds: 300));

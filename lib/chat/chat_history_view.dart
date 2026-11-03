@@ -30,6 +30,7 @@ import 'side_panel/file_link_menu.dart';
 import 'steadiness.dart';
 import 'step_folds.dart';
 import 'user_message_style.dart';
+import 'chat_display_settings.dart';
 import 'widgets/chat_item_view.dart';
 import 'widgets/chat_minimap.dart';
 import 'widgets/edge_fade_mask.dart';
@@ -130,7 +131,7 @@ class _ChatHistoryViewState extends State<ChatHistoryView>
   );
 
   /// Steps the user opened (true) or closed (false). Others follow
-  /// [defaultExpanded]: open while they stream or run, closed once done.
+  /// [defaultExpanded].
   final Map<int, bool> _expanded = {};
 
   // --- Folds ---------------------------------------------------------------
@@ -654,6 +655,8 @@ class _ChatHistoryViewState extends State<ChatHistoryView>
     _scrollController.addListener(_handleScroll);
     _feed.addListener(_handleSessionChanged);
     UserMessageStyle.current.addListener(_handleStyleChanged);
+    FoldLongMessages.current.addListener(_handleStyleChanged);
+    ExpandThinking.current.addListener(_handleStyleChanged);
     // Its size, for a slow frame's line in the event log.
     FrameWatch.notes[this] = _frameNote;
     _wasLive = _feed.isStreaming;
@@ -841,6 +844,8 @@ class _ChatHistoryViewState extends State<ChatHistoryView>
       ..removeListener(_findChanged)
       ..dispose();
     UserMessageStyle.current.removeListener(_handleStyleChanged);
+    FoldLongMessages.current.removeListener(_handleStyleChanged);
+    ExpandThinking.current.removeListener(_handleStyleChanged);
     _reselectTimer?.cancel();
     _scrubEnded?.cancel();
     _autoScroller?.stopAutoScroll();

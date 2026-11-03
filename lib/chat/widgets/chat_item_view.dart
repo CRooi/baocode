@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../browser/browser_steps.dart';
 import '../../images/image_steps.dart';
 import '../../l10n/l10n.dart';
+import '../chat_display_settings.dart';
 import '../chat_models.dart';
 import '../edit_detail.dart';
 import 'activity_row.dart';
@@ -292,10 +293,11 @@ bool isStep(ChatItem item) => switch (item) {
   _ => false,
 };
 
-/// Whether a step is open unless opened or closed by hand: a thought while
-/// it streams. Tool calls stay closed (opening and closing as they start
-/// and end would flicker): a picture's shows small after its line.
+/// Whether a step is open unless opened or closed by hand: a thought as
+/// [ExpandThinking] has it, while it streams too. Tool calls stay closed
+/// (opening and closing as they start and end would flicker): a picture's
+/// shows small after its line.
 bool defaultExpanded(ChatItem item) => switch (item) {
-  ThinkingItem(:final streaming) => streaming,
+  ThinkingItem() => ExpandThinking.current.value,
   _ => false,
 };

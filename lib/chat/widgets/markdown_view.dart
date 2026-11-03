@@ -776,7 +776,13 @@ class _List extends StatelessWidget {
         ),
       );
     }
-    return Text(text, style: style.copyWith(color: AppColors.textMuted));
+    // Selected with the item, and copied with it, but not shown so: the
+    // selection's highlight is the text's, not the list's marks.
+    return Text(
+      text,
+      style: style.copyWith(color: AppColors.textMuted),
+      selectionColor: const Color(0x00000000),
+    );
   }
 
   /// An item's text and blocks: a tight item's text is inline children, a

@@ -216,7 +216,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(ComposerPicker).at(2),
-        matching: find.text('Opus 5.5 · High'),
+        matching: find.text('Opus 5.5 High', findRichText: true),
       ),
       findsOneWidget,
     );

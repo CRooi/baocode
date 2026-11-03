@@ -21,7 +21,8 @@ import '../ide/ide_back_button.dart';
 import '../ide/ide_modern_ui.dart' show IdeModernUI;
 import '../sidebar/sidebar.dart' show SidebarIconButton;
 import '../theme/workbench_theme.dart' show themeColors;
-import 'pages/settings_widgets.dart' show SettingsColors;
+import 'pages/settings_widgets.dart' show SettingsColors, SettingsTarget;
+import 'settings_index.dart';
 
 /// The settings dialog's pages.
 enum SettingsSection {
@@ -180,7 +181,22 @@ class SettingsDialogState extends State<SettingsDialog> {
   SettingsSection get section => _section;
 
   /// Shows [section]'s page.
-  void show(SettingsSection section) => setState(() => _section = section);
+  void show(SettingsSection section) => setState(() {
+    _section = section;
+    _target = null;
+  });
+
+  /// The setting the search went to, on [_section]'s page, and how many
+  /// times one was gone to (see SettingsTarget).
+  String? _target;
+  int _targetSerial = 0;
+
+  /// Shows [entry]'s page, its row scrolled to and lit up.
+  void _showEntry(SettingsEntry entry) => setState(() {
+    _section = entry.section;
+    _target = entry.label;
+    _targetSerial++;
+  });
 
   /// The width set by dragging, shown as [_shownWidth]. A drag sets it
   /// without building the dialog again (see the window's sidebar).
@@ -475,9 +491,13 @@ class SettingsDialogState extends State<SettingsDialog> {
         if (widget.noticeBuilder case final notice?)
           notice(context, (section) => setState(() => _section = section)),
         Expanded(
-          child: KeyedSubtree(
-            key: ValueKey(_section),
-            child: widget.pageBuilder(context, _section),
+          child: SettingsTarget(
+            label: _target,
+            serial: _targetSerial,
+            child: KeyedSubtree(
+              key: ValueKey(_section),
+              child: widget.pageBuilder(context, _section),
+            ),
           ),
         ),
       ],
@@ -667,11 +687,17 @@ class SettingsDialogState extends State<SettingsDialog> {
   Widget _nav(BuildContext context) {
     final l10n = context.l10n;
     final colors = themeColors;
+    // The settings found, under their pages: a page shows for them though
+    // its name is not what is searched for.
+    final found = <SettingsSection, List<SettingsEntry>>{};
+    for (final entry in searchSettings(l10n, _search.text)) {
+      (found[entry.section] ??= []).add(entry);
+    }
     final groups = [
       for (final category in SettingsCategory.values)
         [
           for (final section in category.sections)
-            if (_matches(section)) section,
+            if (_matches(section) || found.containsKey(section)) section,
         ],
     ].where((sections) => sections.isNotEmpty).toList();
     final hide = SidebarIconButton(
@@ -761,16 +787,26 @@ class SettingsDialogState extends State<SettingsDialog> {
                 for (final (i, sections) in groups.indexed) ...[
                   // Groups apart, as Cursor's: by room, not headings.
                   if (i > 0) const SizedBox(height: 14),
-                  for (final section in sections)
+                  for (final section in sections) ...[
                     _NavItem(
                       icon: icon(section),
                       label: label(context, section),
-                      selected: section == _section,
+                      selected: section == _section && _target == null,
                       onTap: () {
                         show(section);
                         _closeDrawer();
                       },
                     ),
+                    for (final entry in found[section] ?? const [])
+                      _NavItem(
+                        label: entry.label,
+                        selected: section == _section && _target == entry.label,
+                        onTap: () {
+                          _showEntry(entry);
+                          _closeDrawer();
+                        },
+                      ),
+                  ],
                 ],
               ],
             ),
@@ -783,13 +819,14 @@ class SettingsDialogState extends State<SettingsDialog> {
 
 class _NavItem extends StatefulWidget {
   const _NavItem({
-    required this.icon,
+    this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
-  final IconData icon;
+  /// None for a setting found, under its page's: indented past the icon.
+  final IconData? icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -824,13 +861,16 @@ class _NavItemState extends State<_NavItem> {
             ),
             child: Row(
               children: [
-                Icon(
-                  widget.icon,
-                  size: 15,
-                  color: selected
-                      ? SettingsColors.textPrimary
-                      : SettingsColors.iconTertiary,
-                ),
+                if (widget.icon case final icon?)
+                  Icon(
+                    icon,
+                    size: 15,
+                    color: selected
+                        ? SettingsColors.textPrimary
+                        : SettingsColors.iconTertiary,
+                  )
+                else
+                  const SizedBox(width: 15),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

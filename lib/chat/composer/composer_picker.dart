@@ -37,6 +37,7 @@ class ComposerPicker extends StatefulWidget {
     required this.selected,
     required this.onSelected,
     this.label,
+    this.labelAside,
     this.describes = true,
     this.descriptionAside = false,
     this.settingsOf,
@@ -58,6 +59,9 @@ class ComposerPicker extends StatefulWidget {
 
   /// What the pill reads; the selected option's label if null.
   final String? label;
+
+  /// After [label], fainter: the model's effort, say.
+  final String? labelAside;
 
   /// Shows each option's description under it.
   final bool describes;
@@ -818,8 +822,20 @@ class ComposerPickerState extends State<ComposerPicker> {
           const SizedBox(width: 4),
           // Cut short where the input is narrow, not over its edge.
           Flexible(
-            child: Text(
-              widget.label ?? widget.selected.label,
+            child: Text.rich(
+              TextSpan(
+                text: widget.label ?? widget.selected.label,
+                children: [
+                  if (widget.labelAside case final aside?)
+                    // A shade under the label, whatever its color now.
+                    TextSpan(
+                      text: ' $aside',
+                      style: TextStyle(
+                        color: color.withValues(alpha: color.a * 0.55),
+                      ),
+                    ),
+                ],
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: color, fontSize: 12),

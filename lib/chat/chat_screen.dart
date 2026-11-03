@@ -11,6 +11,7 @@ import '../base/mouse_navigation.dart';
 import '../channel/channel_setup.dart';
 import '../ide/ide_menu.dart';
 import '../kernel/kernel_types.dart';
+import '../kernel/queued_messages.dart';
 import '../kernel/claude_code/claude_path_setting.dart' show installLocalClaude;
 import '../keybindings/chat_keybindings.dart';
 import '../l10n/l10n.dart';
@@ -1301,6 +1302,10 @@ class _ChatScreenState extends State<ChatScreen>
               onEdit: (id) => unawaited(_session.editQueued(id)),
               onSendNow: _session.sendQueuedNow,
               onRemove: _session.cancelQueued,
+              // Only Claude Code's take them into the turn.
+              intoTurn:
+                  _session.kernel.id == 'claude-code' &&
+                  QueuedMessages.current() == QueuedMessages.duringTurn,
             ),
             _ => null,
           },
@@ -1322,8 +1327,8 @@ class _ChatScreenState extends State<ChatScreen>
           onIntercept: widget.onSideQuestion == null
               ? null
               : _interceptSideQuestion,
+          below: widget.below,
         ),
-        ?widget.below,
       ],
     );
   }
@@ -1453,7 +1458,8 @@ class _RenderConversationColumn extends RenderShiftedBox {
     markNeedsLayout();
   }
 
-  static const _bottom = 12.0;
+  /// Under the row under the composer's box (its branch and pickers).
+  static const _bottom = 8.0;
 
   double _width(double width) =>
       _columnWidth(width, _maxWidth, minimap: _minimap);

@@ -33,6 +33,7 @@ import 'composer_images.dart';
 import 'composer_mock_data.dart';
 import 'composer_picker.dart';
 import 'composer_polish.dart';
+import 'composer_settings.dart';
 import 'pickers_row.dart';
 import 'session_model_picker.dart';
 import 'kernel_option_text.dart';
@@ -93,6 +94,7 @@ class ChatComposer extends StatefulWidget {
     this.draft,
     this.openEditor,
     this.hostFiles,
+    this.below,
   });
 
   final ChatSession session;
@@ -127,6 +129,10 @@ class ChatComposer extends StatefulWidget {
   /// in (let go from another app, pasted, picked) are copied first, for its
   /// agent to read (see [RemoteDrops]); null for a local project.
   final IdeFileService? hostFiles;
+
+  /// Under the box, at the start of the row the dock's composer has its
+  /// pickers in, at that row's end: the branch the agent works on, say.
+  final Widget? below;
 
   @override
   State<ChatComposer> createState() => ChatComposerState();
@@ -610,17 +616,6 @@ class ChatComposerState extends State<ChatComposer>
   /// empty dock composer; Tab takes it.
   String? _suggestion;
 
-  /// The key that takes it, as the keybindings have it now: shown after
-  /// it; none when unbound.
-  String? _suggestionKey;
-
-  /// The context keys where the suggested prompt's key applies.
-  static const _suggestionKeyContext = {
-    ChatContextKeys.inChatInput: true,
-    ChatContextKeys.hasPromptSuggestion: true,
-    ChatContextKeys.inputHasText: false,
-  };
-
   void _acceptSuggestion() {
     final suggestion = MdAtoms.strip(_suggestion ?? '');
     if (suggestion.isEmpty) return;
@@ -1073,7 +1068,69 @@ class ChatComposerState extends State<ChatComposer>
     // An open picker menu (or tooltip) takes arrows, Enter and Esc first.
     if (FloatingRegistry.handleKey(event) case final result?) return result;
     // Then the keybindings: Enter sends, the menu's keys…
-    return ChatKeys.dispatch(event) ?? KeyEventResult.ignored;
+    if (ChatKeys.dispatch(event) case final result?) return result;
+    // A new line, what is left of Enter: a list goes on.
+    final key = event.logicalKey;
+    final keyboard = HardwareKeyboard.instance;
+    if ((key == LogicalKeyboardKey.enter ||
+            key == LogicalKeyboardKey.numpadEnter) &&
+        !keyboard.isMetaPressed &&
+        !keyboard.isControlPressed &&
+        !keyboard.isAltPressed &&
+        _continueList()) {
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  /// A list item's prefix (`- `, `* `, `+ `, `1. `, `1) `, a task's
+  /// `[ ] ` after it), then the item's text.
+  static final _listItem = RegExp(
+    r'^([ \t]*)(?:([-*+])|(\d{1,9})([.)]))([ \t]+)(\[[ xX]\][ \t]+)?',
+  );
+
+  /// The new line under a list item, with the next item's prefix (the
+  /// number one on; a task unchecked); on an item left empty, its prefix
+  /// taken away to end the list. False where the caret is not after an
+  /// item's prefix, or the setting is off: a line as any other.
+  bool _continueList() {
+    if (!ListContinuationSetting.current()) return false;
+    final selection = _controller.selection;
+    if (!selection.isValid) return false;
+    final text = _controller.text;
+    final start = selection.start;
+    final end = selection.end;
+    final lineStart = start == 0 ? 0 : text.lastIndexOf('\n', start - 1) + 1;
+    final next = text.indexOf('\n', lineStart);
+    final lineEnd = next < 0 ? text.length : next;
+    if (end > lineEnd) return false;
+    final line = text.substring(lineStart, lineEnd);
+    final match = _listItem.firstMatch(line);
+    if (match == null || start < lineStart + match.end) return false;
+    _controller.breakUndo();
+    if (line.substring(match.end).trim().isEmpty) {
+      _controller.replace(
+        lineStart,
+        lineEnd,
+        '',
+        selection: TextSelection.collapsed(offset: lineStart),
+      );
+    } else {
+      final marker = switch (match[3]) {
+        final number? => '${int.parse(number) + 1}${match[4]}',
+        null => match[2]!,
+      };
+      final task = match[6] == null ? '' : '[ ] ';
+      final inserted = '\n${match[1]}$marker${match[5]}$task';
+      _controller.replace(
+        start,
+        end,
+        inserted,
+        selection: TextSelection.collapsed(offset: start + inserted.length),
+      );
+    }
+    _controller.breakUndo();
+    return true;
   }
 
   bool get _caretAtStart {
@@ -1119,7 +1176,8 @@ class ChatComposerState extends State<ChatComposer>
         ChatCommandIds.acceptPromptSuggestion: _acceptSuggestion,
       if (_modePickerKey.currentState case final picker?)
         ChatCommandIds.openModePicker: picker.toggle,
-      if (widget.session.modes case final modes?)
+      if (widget.session.modes case final modes?
+          when !AgentModeOnlySetting.current())
         ChatCommandIds.nextMode: () => _nextMode(modes),
       if (_modelPickerKey.currentState case final picker?)
         ChatCommandIds.openModelPicker: picker.toggle,
@@ -1509,18 +1567,9 @@ class ChatComposerState extends State<ChatComposer>
     final suggestion = widget.onSubmit == null
         ? widget.session.promptSuggestion
         : null;
-    // Its key follows the keybindings (the window builds again when they
-    // change).
-    final suggestionKey = suggestion == null
-        ? null
-        : ChatKeys.keyLabel(
-            ChatCommandIds.acceptPromptSuggestion,
-            _suggestionKeyContext,
-          );
-    if (suggestion != _suggestion || suggestionKey != _suggestionKey) {
+    if (suggestion != _suggestion) {
       _suggestion = suggestion;
-      _suggestionKey = suggestionKey;
-      _editor = null; // The placeholder shows them.
+      _editor = null; // The placeholder shows it.
     }
     final colors = themeColors;
     if (!identical(colors, _editorColors)) {
@@ -1534,7 +1583,7 @@ class ChatComposerState extends State<ChatComposer>
       return built;
     }
     _builtFrom = inputs;
-    return _built = FloatingLayer(
+    final box = FloatingLayer(
       visible: _trigger != null,
       // Above the composer at the trigger character; below it when there
       // is no room above.
@@ -1565,7 +1614,39 @@ class ChatComposerState extends State<ChatComposer>
         ),
       ),
     );
+    if (!_pickersBelow) return _built = box;
+    return _built = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [box, _buildBelow()],
+    );
   }
+
+  /// The dock's composer has its pickers under the box, the one editing a
+  /// sent message in it.
+  bool get _pickersBelow => widget.onSubmit == null;
+
+  /// Under the box: [ChatComposer.below] at the start, the pickers at the
+  /// end, given what is left.
+  Widget _buildBelow() => LayoutBuilder(
+    builder: (context, constraints) => Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.below case final below?)
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.45),
+            child: below,
+          ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: _buildPickers(alignEnd: true),
+          ),
+        ),
+      ],
+    ),
+  );
 
   /// What [build] made, and of what ([_buildInputs]): the same again
   /// while none of it changed, so that the session's every change (an
@@ -1610,12 +1691,15 @@ class ChatComposerState extends State<ChatComposer>
       widget.tapRegionGroupId,
       widget.contextPanelOpen,
       widget.onToggleContextPanel,
+      widget.below,
       _focusNode.hasFocus,
       _ghostAt != null,
       _shownBuilt,
       _editor,
       _polishing,
       ComposerPolishSetting.current(),
+      AgentModeOnlySetting.current(),
+      SimpleModelPickerSetting.current(),
       l10n,
       themeColors,
       _hovers,
@@ -1878,13 +1962,9 @@ class ChatComposerState extends State<ChatComposer>
         scrollController: _scrollController,
         shrinkWrap: true,
         embeds: const ComposerChips(),
-        // A suggested prompt, then the key that takes it as the keybindings
-        // label it (`Tab`); alone when it has none. On one line.
-        placeholder: switch ((_suggestion, _suggestionKey)) {
-          (final suggestion?, final key?) => '$suggestion    $key',
-          (final suggestion?, null) => suggestion,
-          (null, _) => context.l10n.composerPlaceholder,
-        }.replaceAll(RegExp(r'[\x00-\x1f]+'), ' '),
+        // A suggested prompt, on one line.
+        placeholder: (_suggestion ?? context.l10n.composerPlaceholder)
+            .replaceAll(RegExp(r'[\x00-\x1f]+'), ' '),
         onKey: _handleKey,
         onPaste: _paste,
         onPasteCopy: (markdown) =>
@@ -1901,87 +1981,105 @@ class ChatComposerState extends State<ChatComposer>
     );
   }
 
-  Widget _buildToolbar() {
+  /// The kernel's, the mode's, the permissions' and the model's pickers,
+  /// the model's label cut short to fit, scrolling when even that does not;
+  /// at the end of the room with [alignEnd].
+  Widget _buildPickers({bool alignEnd = false}) {
     final session = widget.session;
     // Only the dock's composer picks the kernel, and only until it starts.
     final kernel = widget.onSubmit == null ? session.kernelChoice : null;
-    final mode = session.modes;
+    // Agent always: no mode to pick.
+    final mode = AgentModeOnlySetting.current() ? null : session.modes;
     final permission = session.permissions;
     final model = session.models;
-    final context = session.context;
-    final l10n = this.context.l10n;
-    KernelOption localized(KernelOption option) => localizedKernelOption(
-      l10n,
-      session.kernel.id,
-      KernelChoiceKind.permission,
-      option,
+    final l10n = context.l10n;
+    KernelOption localized(KernelOption option, [KernelChoiceKind? kind]) =>
+        localizedKernelOption(
+          l10n,
+          session.kernel.id,
+          kind ?? KernelChoiceKind.permission,
+          option,
+        );
+    return LayoutBuilder(
+      builder: (context, constraints) => Align(
+        alignment: alignEnd
+            ? AlignmentDirectional.centerEnd
+            : AlignmentDirectional.centerStart,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          reverse: alignEnd,
+          child: PickersRow(
+            maxWidth: constraints.maxWidth,
+            children: [
+              if (kernel != null) ...[
+                ComposerPicker(
+                  options: kernel.options,
+                  selected: kernel.selected,
+                  tapRegionGroupId: widget.tapRegionGroupId,
+                  focusNode: _focusNode,
+                  onSelected: kernel.onSelected,
+                ),
+                const SizedBox(width: 2),
+              ],
+              if (mode != null) ...[
+                ComposerPicker(
+                  key: _modePickerKey,
+                  options: [
+                    for (final option in mode.options)
+                      localized(option, KernelChoiceKind.mode),
+                  ],
+                  selected: localized(mode.selected, KernelChoiceKind.mode),
+                  emphasized: true,
+                  tooltip: _hovers.mode,
+                  tapRegionGroupId: widget.tapRegionGroupId,
+                  focusNode: _focusNode,
+                  onSelected: mode.onSelected,
+                ),
+                const SizedBox(width: 2),
+              ],
+              if (permission != null) ...[
+                ComposerPicker(
+                  options: [
+                    for (final option in permission.options) localized(option),
+                  ],
+                  selected: localized(permission.selected),
+                  // `context` is the session's here.
+                  title: l10n.composerApprovalTitle(session.kernel.label),
+                  menuWidth: 290,
+                  tapRegionGroupId: widget.tapRegionGroupId,
+                  focusNode: _focusNode,
+                  onSelected: permission.onSelected,
+                ),
+                const SizedBox(width: 2),
+              ],
+              // With none to pick, one to set up.
+              if (model != null || session.health.noModel)
+                SessionModelPicker(
+                  session: session,
+                  pickerKey: _modelPickerKey,
+                  tooltip: _hovers.model,
+                  tapRegionGroupId: widget.tapRegionGroupId,
+                  focusNode: _focusNode,
+                ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
+
+  Widget _buildToolbar() {
+    final session = widget.session;
+    final context = session.context;
     return Padding(
       padding: const EdgeInsets.fromLTRB(6, 4, 6, 6),
       child: Row(
         children: [
-          // Takes the room left, so the actions sit at the far end; the
-          // model's label cut short to fit, scrolls when even that does not.
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: PickersRow(
-                  maxWidth: constraints.maxWidth,
-                  children: [
-                    if (kernel != null) ...[
-                      ComposerPicker(
-                        options: kernel.options,
-                        selected: kernel.selected,
-                        tapRegionGroupId: widget.tapRegionGroupId,
-                        focusNode: _focusNode,
-                        onSelected: kernel.onSelected,
-                      ),
-                      const SizedBox(width: 2),
-                    ],
-                    if (mode != null) ...[
-                      ComposerPicker(
-                        key: _modePickerKey,
-                        options: mode.options,
-                        selected: mode.selected,
-                        emphasized: true,
-                        tooltip: _hovers.mode,
-                        tapRegionGroupId: widget.tapRegionGroupId,
-                        focusNode: _focusNode,
-                        onSelected: mode.onSelected,
-                      ),
-                      const SizedBox(width: 2),
-                    ],
-                    if (permission != null) ...[
-                      ComposerPicker(
-                        options: [
-                          for (final option in permission.options)
-                            localized(option),
-                        ],
-                        selected: localized(permission.selected),
-                        // `context` is the session's here.
-                        title: l10n.composerApprovalTitle(session.kernel.label),
-                        menuWidth: 290,
-                        tapRegionGroupId: widget.tapRegionGroupId,
-                        focusNode: _focusNode,
-                        onSelected: permission.onSelected,
-                      ),
-                      const SizedBox(width: 2),
-                    ],
-                    // With none to pick, one to set up.
-                    if (model != null || session.health.noModel)
-                      SessionModelPicker(
-                        session: session,
-                        pickerKey: _modelPickerKey,
-                        tooltip: _hovers.model,
-                        tapRegionGroupId: widget.tapRegionGroupId,
-                        focusNode: _focusNode,
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          // Takes the room left, so the actions sit at the far end.
+          if (_pickersBelow)
+            const Spacer()
+          else
+            Expanded(child: _buildPickers()),
           const SizedBox(width: 8),
           if (ComposerPolishSetting.current()) ...[
             _PolishButton(

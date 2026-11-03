@@ -195,6 +195,7 @@ class FeatureTipsController extends ChangeNotifier {
       }
     }
     _collapsed = collapsed;
+    _skipped = kept['skipped'] == true;
     await _keep((kept) {
       kept['lastVersion'] = '$_version';
       kept['collapsed'] = collapsed;
@@ -259,11 +260,21 @@ class FeatureTipsController extends ChangeNotifier {
 
   /// Whether the card shows.
   bool get cardVisible =>
-      enabled && _started && !_collapsed && _checklist.isNotEmpty && !_allDone;
+      enabled &&
+      _started &&
+      !_skipped &&
+      !_collapsed &&
+      _checklist.isNotEmpty &&
+      !_allDone;
 
   /// Whether the sidebar's "Setup n/m" shows instead.
   bool get entryVisible =>
-      enabled && _started && _collapsed && _checklist.isNotEmpty;
+      enabled && _started && !_skipped && _collapsed && _checklist.isNotEmpty;
+
+  /// Skipped: neither the card nor the sidebar's entry shows again, until
+  /// Show Setup Guide brings it back.
+  bool get skipped => _skipped;
+  bool _skipped = false;
 
   /// The tip turned on, last, failed with this: shown under it.
   final Map<String, String> errors = {};
@@ -316,6 +327,13 @@ class FeatureTipsController extends ChangeNotifier {
     _notify();
   }
 
+  /// Skips the setup for good: the card and the sidebar's entry are gone.
+  Future<void> skip() async {
+    _skipped = true;
+    await _keep((kept) => kept['skipped'] = true);
+    _notify();
+  }
+
   /// How many times the card was brought back: the main window shows where
   /// it is (a new agent) at each.
   int get restores => _restores;
@@ -328,9 +346,11 @@ class FeatureTipsController extends ChangeNotifier {
     _started = true;
     _showDismissed = true;
     _collapsed = false;
+    _skipped = false;
     _checklist = await _listChecklist();
     await _keep((kept) {
       kept['collapsed'] = false;
+      kept.remove('skipped');
       kept['idleLaunches'] = 0;
     });
     _notify();
@@ -348,6 +368,7 @@ class FeatureTipsController extends ChangeNotifier {
     _upgradeTips = const [];
     _showDismissed = false;
     _collapsed = false;
+    _skipped = false;
     errors.clear();
     await storage.set(storageKey, {'lastVersion': '$_version'});
     _restores++;
