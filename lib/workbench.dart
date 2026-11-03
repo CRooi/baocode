@@ -4155,12 +4155,6 @@ class _WorkbenchState extends State<Workbench> implements WindowDelegate {
       openInIde: embedded
           ? null
           : (request) => _openRequestInIde(thread, request),
-      showBrowserTab: embedded
-          ? null
-          : (tabId) {
-              BrowserTools.show(tabId);
-              _sidePanel.showSection(thread.session, SidePanelSection.browser);
-            },
       openFolder: embedded
           ? null
           : (path) => _sidePanel.openFolder(thread.session, path),
@@ -4924,7 +4918,6 @@ class _WorkbenchState extends State<Workbench> implements WindowDelegate {
       },
       SidePanelSection.terminal ||
       SidePanelSection.usage ||
-      SidePanelSection.browser ||
       SidePanelSection.plan => null,
     };
   }
