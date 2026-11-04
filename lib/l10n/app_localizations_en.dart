@@ -13812,7 +13812,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get remoteLocalAccessDetail =>
-      'Its agents may run commands on this computer (asking you each time), copy files here and there and forward ports.';
+      'Agents on these hosts may run commands on this computer (asking you each time), copy files both ways and forward ports.';
+
+  @override
+  String get remoteLocalAccessNoAsking => 'Runs commands without asking';
+
+  @override
+  String get remoteLocalAccessAskAgain => 'Ask Each Time';
 
   @override
   String get sidePanelPorts => 'Ports';
