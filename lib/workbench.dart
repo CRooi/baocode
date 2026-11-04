@@ -1345,7 +1345,7 @@ class _WorkbenchState extends State<Workbench> implements WindowDelegate {
     () => IdeFileIndex(
       ProjectHost.of(project.path).files(project.root),
       project.root,
-      pathContext: ProjectHost.of(project.path).paths,
+      pathContext: RemoteLocation.pathsOf(project.path),
     ),
   )..roots = _workspace.workspaceOf(project)?.folders;
 
@@ -1362,7 +1362,7 @@ class _WorkbenchState extends State<Workbench> implements WindowDelegate {
       files: _projectFileServices[location] ??= host.files(
         host.pathOf(location),
       ),
-      paths: host.paths,
+      paths: RemoteLocation.pathsOf(location),
       index: index,
       home: project.host == null ? homeDirectory : null,
     );
@@ -3210,7 +3210,7 @@ class _WorkbenchState extends State<Workbench> implements WindowDelegate {
             repositoryDetection: _repositoryDetection(host),
             openWorktree: (path) =>
                 widget.gitFor?.call(RemoteLocation.of(host.name, path)),
-            paths: host.name == null ? null : host.paths,
+            paths: host.name == null ? null : RemoteLocation.pathsOf(folder),
           )
         : IdeWorkspace(
             root,
@@ -3220,7 +3220,7 @@ class _WorkbenchState extends State<Workbench> implements WindowDelegate {
             repositoryDetection: _repositoryDetection(host),
             openWorktree: (path) =>
                 widget.gitFor?.call(RemoteLocation.of(host.name, path)),
-            paths: host.name == null ? null : host.paths,
+            paths: host.name == null ? null : RemoteLocation.pathsOf(folder),
           );
     // The parts as the last run left them, before anything shows them.
     if (_workspace.ideView(folder) case final kept?) {
@@ -4025,7 +4025,7 @@ class _WorkbenchState extends State<Workbench> implements WindowDelegate {
       files: _projectFileServices[location] ??= host.files(
         host.pathOf(location),
       ),
-      paths: host.paths,
+      paths: RemoteLocation.pathsOf(location),
     );
   }
 
