@@ -206,13 +206,13 @@ class AttentionService {
     final String body;
     switch (event) {
       case AttentionEvent.needsInput:
-        final plan = thread.session.awaitingPlan;
-        if (plan != null) {
+        final session = thread.session;
+        if (session.pendingInteraction == null && session.canStartPlan) {
           // A plan put to the user: what waits on them is their go-ahead,
           // not a request to answer. Said as such, not as a question.
           body = l10n.attentionPlanReady;
         } else {
-          final detail = _request(thread.session.pendingInteraction, l10n);
+          final detail = _request(session.pendingInteraction, l10n);
           body = detail == null
               ? l10n.attentionNeedsInput
               : '${l10n.attentionNeedsInput} · $detail';
@@ -220,9 +220,7 @@ class AttentionService {
         unawaited(host.requestAttention());
       case AttentionEvent.finished:
         final reply = _lastReply(thread);
-        body = thread.session.awaitingPlan != null
-            ? l10n.attentionPlanReady
-            : reply == null
+        body = reply == null
             ? l10n.attentionFinished
             : '${l10n.attentionFinished} · $reply';
     }
