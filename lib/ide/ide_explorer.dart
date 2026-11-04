@@ -20,6 +20,7 @@ import '../keybindings/keybinding_service.dart';
 import '../l10n/l10n.dart';
 import '../platform/app_paths.dart';
 import '../theme/codicons.dart';
+import 'host_paths.dart';
 import 'ide_hover.dart';
 import '../theme/material_file_icons.dart';
 import '../theme/workbench_theme.dart' show themeColors;
@@ -1728,7 +1729,7 @@ class IdeExplorerState extends State<IdeExplorer>
       for (final file in toPaste.files) {
         final source = file.path;
         final sourceName = toPaste.external
-            ? p.basename(source)
+            ? hostBasename(source)
             : _controller.paths.basename(source);
         final target = _controller.paths.join(folder, sourceName);
         if (toPaste.cut && target == source) continue;

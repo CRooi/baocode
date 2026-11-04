@@ -7709,6 +7709,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String remoteStatusSystem(String platform) {
+    return '系统：$platform';
+  }
+
+  @override
   String remoteStatusTooltipLost(String host) {
     return '与 $host 的连接已断开：点击立即重连';
   }

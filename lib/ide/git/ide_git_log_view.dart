@@ -26,6 +26,7 @@ import '../../theme/app_theme.dart';
 import '../../theme/codicons.dart';
 import '../../theme/material_file_icons.dart';
 import '../../theme/workbench_theme.dart';
+import '../host_paths.dart';
 import '../file_service.dart';
 import '../ide_button.dart';
 import '../ide_code_diff.dart';
@@ -1115,7 +1116,7 @@ class IdeGitLogViewState extends State<IdeGitLogView> {
           child: _DropButton(
             icon: Codicons.repo,
             // The folder's name, though a worktree of its shows.
-            label: p.basename(
+            label: hostBasename(
               repositories
                       .where((repository) => identical(repository.$2, git))
                       .firstOrNull
@@ -1128,8 +1129,8 @@ class IdeGitLogViewState extends State<IdeGitLogView> {
                 IdeMenuAction(
                   switch (repo.state?.count) {
                     final count? when count > 0 =>
-                      '${p.basename(folder)}  ($count)',
-                    _ => p.basename(folder),
+                      '${hostBasename(folder)}  ($count)',
+                    _ => hostBasename(folder),
                   },
                   checked: identical(repo, git),
                   onSelected: () => widget.host.selectRepository(repo),
@@ -1470,14 +1471,14 @@ class IdeGitLogViewState extends State<IdeGitLogView> {
   String _pathName(IdeGitRepository git, String path) {
     final paths = git.service.pathContext;
     final root = git.service.root;
-    if (paths.equals(path, root)) return p.basename(path);
+    if (paths.equals(path, root)) return hostBasename(path);
     return paths.isWithin(root, path)
         ? paths.relative(path, from: root).replaceAll(r'\', '/')
         : path;
   }
 
   String _linesLabel(IdeGitLogLines lines) => context.l10n.gitLogLinesOf(
-    p.basename(lines.path),
+    hostBasename(lines.path),
     lines.start,
     lines.end,
   );
@@ -1487,7 +1488,7 @@ class IdeGitLogViewState extends State<IdeGitLogView> {
     if (filter.lines case final lines?) return _linesLabel(lines);
     return switch (filter.paths) {
       [] => context.l10n.gitLogPaths,
-      [final path] => p.basename(path),
+      [final path] => hostBasename(path),
       final paths => context.l10n.gitLogPathCount(paths.length),
     };
   }

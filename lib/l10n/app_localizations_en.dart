@@ -8186,6 +8186,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String remoteStatusSystem(String platform) {
+    return 'System: $platform';
+  }
+
+  @override
   String remoteStatusTooltipLost(String host) {
     return 'The connection to $host is lost: click to reconnect now';
   }

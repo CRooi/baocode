@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:path/path.dart' as p;
 
 import '../theme/icon_registry.dart';
 import '../theme/workbench_theme.dart' show themeColors;
@@ -14,6 +13,7 @@ import 'package:bao_editor/monaco/flutter/language_assets.dart';
 import 'package:bao_editor/monaco/flutter/language_overrides.dart';
 import 'package:bao_editor/textmate/textmate_manifest.dart';
 
+import 'host_paths.dart';
 import 'ide_editor.dart';
 import 'ide_hover.dart';
 import 'ide_spinning.dart';
@@ -388,7 +388,7 @@ class IdeLanguageNames {
     }
     final registrations = _registrations;
     if (registrations == null) return languageNameForFile(path);
-    final lower = p.basename(path).toLowerCase();
+    final lower = hostBasename(path).toLowerCase();
     MonacoLanguageRegistration? best;
     var bestLength = 0;
     for (final registration in registrations) {
