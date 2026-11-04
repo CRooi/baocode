@@ -64,6 +64,8 @@ import 'file_open.dart';
 import 'file_preview.dart';
 import 'git_changes.dart';
 import 'side_panel_controller.dart';
+import '../../remote/remote_location.dart';
+import '../../remote/ports_view.dart';
 
 /// [child] (the conversations) and, at its right (its left, as [panel] is
 /// [AgentSidePanel.atLeft]) while [panel] shows, the side panel [builder]
@@ -613,6 +615,13 @@ class AgentSidePanelView extends StatelessWidget {
                 session: session,
               ),
               SidePanelSection.plan => _planPage(context, tabs.plan!),
+              SidePanelSection.ports => switch (_portsHost(session)) {
+                final host? => PortsView(
+                  key: ValueKey(('page', SidePanelSection.ports, host)),
+                  host: host,
+                ),
+                null => const SizedBox.shrink(),
+              },
             },
           ),
         ],
@@ -1366,6 +1375,7 @@ extension SidePanelSectionUi on SidePanelSection {
     SidePanelSection.terminal => Codicons.terminal,
     SidePanelSection.usage => Codicons.graph,
     SidePanelSection.plan => Codicons.checklist,
+    SidePanelSection.ports => Codicons.plug,
   };
 
   /// The command that shows it; none for the plan's, there only at times.
@@ -1374,7 +1384,7 @@ extension SidePanelSectionUi on SidePanelSection {
     SidePanelSection.changes => ChatCommandIds.sidePanelChanges,
     SidePanelSection.terminal => ChatCommandIds.sidePanelTerminal,
     SidePanelSection.usage => ChatCommandIds.sidePanelUsage,
-    SidePanelSection.plan => null,
+    SidePanelSection.plan || SidePanelSection.ports => null,
   };
 
   String label(BuildContext context) => switch (this) {
@@ -1383,7 +1393,16 @@ extension SidePanelSectionUi on SidePanelSection {
     SidePanelSection.terminal => context.l10n.sidePanelTerminal,
     SidePanelSection.usage => context.l10n.sidePanelUsage,
     SidePanelSection.plan => context.l10n.sidePanelPlan,
+    SidePanelSection.ports => context.l10n.sidePanelPorts,
   };
+}
+
+/// The SSH host of [session]'s project, whose ports its ports page lists;
+/// null for one of this machine's (or of WSL, whose are this machine's).
+String? _portsHost(ChatSession? session) {
+  final cwd = session?.kernelContext.cwd;
+  final host = cwd == null ? null : RemoteLocation.hostOf(cwd);
+  return host == null || RemoteLocation.isWsl(host) ? null : host;
 }
 
 /// Whether [session]'s usage page is offered: once a call of it is kept
@@ -1428,7 +1447,8 @@ class SidePanelRail extends StatelessWidget {
           0,
     SidePanelSection.files ||
     SidePanelSection.usage ||
-    SidePanelSection.plan => 0,
+    SidePanelSection.plan ||
+    SidePanelSection.ports => 0,
   };
 
   static const _button = 26.0;
@@ -1457,6 +1477,7 @@ class SidePanelRail extends StatelessWidget {
             for (final section in alwaysShownSections)
               if (section != SidePanelSection.usage || _usageOffered(session))
                 section,
+            if (_portsHost(session) != null) SidePanelSection.ports,
           ].indexed) ...[
             if (i > 0) const SizedBox(height: _gap),
             Stack(
@@ -1535,6 +1556,7 @@ class _SectionBar extends StatelessWidget {
           _usageOffered(session, picked: tabs.section))
         section,
     if (tabs.plan != null) SidePanelSection.plan,
+    if (_portsHost(session) != null) SidePanelSection.ports,
   ];
 
   /// What the tabs of [sections] take with their names (see
@@ -1623,7 +1645,8 @@ class _SectionBar extends StatelessWidget {
                     count: switch (section) {
                       SidePanelSection.files ||
                       SidePanelSection.usage ||
-                      SidePanelSection.plan => 0,
+                      SidePanelSection.plan ||
+                      SidePanelSection.ports => 0,
                       SidePanelSection.changes => changes,
                       SidePanelSection.terminal => running,
                     },
