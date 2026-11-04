@@ -6637,7 +6637,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Opens ChatGPT\'s sign-in page in the browser.';
 
   @override
-  String get modelsAccountsImport => 'Import Accounts…';
+  String get modelsAccountsImport => 'Import';
+
+  @override
+  String get modelsAccountsImportTitle => 'Import Accounts';
+
+  @override
+  String get modelsAccountsImportFile => 'Choose File…';
 
   @override
   String get modelsAccountsImportDescription =>
@@ -6664,6 +6670,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String modelsAccountsImportSummary(int count) {
     return 'Accounts imported: $count';
+  }
+
+  @override
+  String modelsAccountsImportKept(int count) {
+    return 'Already here, kept as signed in: $count';
   }
 
   @override
