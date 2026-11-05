@@ -143,7 +143,8 @@ class ChatComposer extends StatefulWidget {
 class ChatComposerState extends State<ChatComposer>
     with ChatKeyTarget
     implements FileDropDelegate {
-  static const _fontSize = 13.5;
+  /// The conversation's text size, as its messages are.
+  static double get _fontSize => ChatFontSize.current.value;
   static TextStyle get _textStyle => TextStyle(
     color: AppColors.textPrimary,
     fontSize: _fontSize,
@@ -151,11 +152,11 @@ class ChatComposerState extends State<ChatComposer>
     // Center glyphs in the line box so the custom caret lines up with them.
     leadingDistribution: TextLeadingDistribution.even,
   );
-  static const _lineHeight = _fontSize * 1.5;
+  static double get _lineHeight => _fontSize * 1.5;
 
   /// Resting height of the text area: roomier than one line, and it keeps
   /// the composer at the height it had with the old context row.
-  static const _minEditorHeight = _lineHeight + 28;
+  static double get _minEditorHeight => _lineHeight + 28;
   static const _maxEditorLines = 10;
 
   late final ComposerController _controller = _createController();
@@ -407,6 +408,7 @@ class ChatComposerState extends State<ChatComposer>
     _focusNode.addListener(_handleFocusChanged);
     widget.draft?.addListener(_handleDraftChanged);
     ComposerPolishSetting.changes?.addListener(_handleSettingsChanged);
+    ChatFontSize.current.addListener(_handleSettingsChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _focusNode.requestFocus();
@@ -425,7 +427,8 @@ class ChatComposerState extends State<ChatComposer>
     }
   }
 
-  /// Settings → General's Polish button, turned on or off.
+  /// Settings → General's Polish button turned on or off, or the
+  /// conversation's text size changed.
   void _handleSettingsChanged() {
     if (mounted) setState(() {});
   }
@@ -434,6 +437,7 @@ class ChatComposerState extends State<ChatComposer>
   void dispose() {
     widget.draft?.removeListener(_handleDraftChanged);
     ComposerPolishSetting.changes?.removeListener(_handleSettingsChanged);
+    ChatFontSize.current.removeListener(_handleSettingsChanged);
     FloatingRegistry.closePopover(_menuOwner);
     _clickWindow?.cancel();
     _controller.dispose();
