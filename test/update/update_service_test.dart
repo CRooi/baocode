@@ -234,6 +234,15 @@ void main() {
       expect(service.pending, isTrue);
       service.skip(service.release!);
       expect(service.pending, isTrue, reason: 'skipped: not offered, shown');
+      // Updates off: no button, and the sidebar told at once.
+      service.start();
+      var told = 0;
+      service.addListener(() => told++);
+      mode.mode = UpdateMode.none;
+      expect(service.pending, isFalse, reason: 'off');
+      expect(told, 1);
+      mode.mode = UpdateMode.automatic;
+      expect(service.pending, isTrue);
 
       // Skipped before it was found: not downloaded, the button there all
       // the same.

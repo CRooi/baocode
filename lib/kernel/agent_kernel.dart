@@ -241,6 +241,14 @@ abstract interface class ReportsUsage {
   /// shows before it reports its own.
   List<RateLimitWindow> get accountLimits;
 
+  /// Whether the account's usage was asked for lately: [refreshUsage]
+  /// would not ask again.
+  bool get usageFresh;
+
+  /// Whether the account's usage is being asked for now; when the answer
+  /// comes, the limits come as [StatsReported].
+  bool get usageChecking;
+
   /// Asks for the account's usage now, rather than wait for a reply to
   /// report it; the limits come as [StatsReported], in every session.
   Future<void> refreshUsage();

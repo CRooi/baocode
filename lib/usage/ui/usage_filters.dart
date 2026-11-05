@@ -352,7 +352,7 @@ class _Segment extends StatelessWidget {
             style: TextStyle(
               color: selected || hovered ? AppColors.text : AppColors.textMuted,
               fontSize: dense ? 11 : 11.5,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              fontWeight: selected ? FontWeight.w600 : AppFonts.regular,
             ),
           ),
         ),
@@ -524,7 +524,7 @@ class _Tab<T> extends StatelessWidget {
                         ? AppColors.text
                         : AppColors.textMuted,
                     fontSize: 11.5,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: selected ? FontWeight.w600 : AppFonts.regular,
                   ),
                 ),
               ),

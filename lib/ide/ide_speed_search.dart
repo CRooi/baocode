@@ -62,7 +62,7 @@ class IdeSpeedSearchField extends StatelessWidget {
             style: TextStyle(
               color: none ? tint : AppColors.textMuted,
               fontSize: 11,
-              fontWeight: FontWeight.w400,
+              fontWeight: AppFonts.regular,
               decoration: TextDecoration.none,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),

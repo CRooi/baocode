@@ -1011,7 +1011,7 @@ class PanelButton extends StatelessWidget {
                         ? 'button.foreground'
                         : 'button.secondaryForeground'],
                 fontSize: 12,
-                fontWeight: primary ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: primary ? FontWeight.w600 : AppFonts.regular,
               ),
             ),
           ),

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../l10n/l10n.dart';
+import '../../theme/app_theme.dart';
 import '../../theme/codicons.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
 import '../ide_hover.dart';
@@ -413,6 +414,7 @@ class _IdeGitBranchPopupState extends State<IdeGitBranchPopup> {
               fontSize: 13,
               color: IdeMenuColors.foreground,
               decoration: TextDecoration.none,
+              fontWeight: AppFonts.regular,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 
 import '../ide/terminal/terminal_colors.dart';
@@ -239,6 +240,11 @@ abstract final class AppMetrics {
 }
 
 abstract final class AppFonts {
+  /// The weight the window's regular text is drawn at: what names no
+  /// weight, or the regular one ([CodeFont.uiWeight]).
+  static FontWeight get regular =>
+      FontWeight.values[CodeFont.uiWeight.value ~/ 100 - 1];
+
   /// The font code, paths and commands are drawn in: the first of
   /// [CodeFont.families], which the user may change.
   static String get mono => CodeFont.families.value.first;
@@ -309,11 +315,48 @@ abstract final class AppFonts {
   static const iconFallbacks = <String>['Segoe MDL2 Assets'];
 }
 
+/// [theme] with no letter spacing of its own, and its regular text at
+/// [AppFonts.regular]. Material's spacing (0.25 for body text, more for
+/// smaller) is set for Roboto, and spreads the system font's letters (SF
+/// Pro's) apart.
+TextTheme _appText(TextTheme theme) {
+  TextStyle? restyled(TextStyle? style) => style?.copyWith(
+    letterSpacing: 0,
+    fontWeight: switch (style.fontWeight) {
+      null || FontWeight.w400 => AppFonts.regular,
+      final weight => weight,
+    },
+  );
+  return theme.copyWith(
+    displayLarge: restyled(theme.displayLarge),
+    displayMedium: restyled(theme.displayMedium),
+    displaySmall: restyled(theme.displaySmall),
+    headlineLarge: restyled(theme.headlineLarge),
+    headlineMedium: restyled(theme.headlineMedium),
+    headlineSmall: restyled(theme.headlineSmall),
+    titleLarge: restyled(theme.titleLarge),
+    titleMedium: restyled(theme.titleMedium),
+    titleSmall: restyled(theme.titleSmall),
+    bodyLarge: restyled(theme.bodyLarge),
+    bodyMedium: restyled(theme.bodyMedium),
+    bodySmall: restyled(theme.bodySmall),
+    labelLarge: restyled(theme.labelLarge),
+    labelMedium: restyled(theme.labelMedium),
+    labelSmall: restyled(theme.labelSmall),
+  );
+}
+
 ThemeData buildAppTheme() {
   final colors = WorkbenchThemeService.instance.colors;
   final brightness = colors.dark ? Brightness.dark : Brightness.light;
   return ThemeData(
     brightness: brightness,
+    typography: Typography.material2021(
+      platform: defaultTargetPlatform,
+      englishLike: _appText(Typography.englishLike2021),
+      dense: _appText(Typography.dense2021),
+      tall: _appText(Typography.tall2021),
+    ),
     fontFamilyFallback: AppPlatform.isWindows
         ? AppFonts.windowsFallbacks
         : null,

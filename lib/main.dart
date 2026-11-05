@@ -866,6 +866,8 @@ class _BaoCodeAppState extends State<BaoCodeApp> {
     CodeFont.ligatures,
     // The conversation's text size, read as its messages build.
     ChatFontSize.current,
+    // The window's text weight, the theme's.
+    CodeFont.uiWeight,
     WindowBlur.enabled,
   ]);
 
@@ -1038,7 +1040,12 @@ class _BaoCodeAppState extends State<BaoCodeApp> {
           ),
           child: MediaQuery(
             data: media.copyWith(textScaler: snapped(system)),
-            child: UiZoom(scale: zoom, child: scaled),
+            // Text outside a Material (overlays, popups): the user's weight
+            // too.
+            child: DefaultTextStyle.merge(
+              style: TextStyle(fontWeight: AppFonts.regular),
+              child: UiZoom(scale: zoom, child: scaled),
+            ),
           ),
         );
       },

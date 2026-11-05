@@ -415,6 +415,20 @@ class AppearanceSettingsPage extends StatelessWidget {
     _keep(CodeFont.uiScaleSettingKey, CodeFont.uiScaleSetting(percent));
   }
 
+  void _selectUiWeight(int weight) {
+    CodeFont.uiWeight.value = weight;
+    _keep(CodeFont.uiWeightSettingKey, CodeFont.uiWeightSetting(weight));
+  }
+
+  static String _uiWeightName(BuildContext context, int weight) {
+    final l10n = context.l10n;
+    return switch (weight) {
+      300 => l10n.appearanceSettingsUiWeightLight,
+      500 => l10n.appearanceSettingsUiWeightMedium,
+      _ => l10n.appearanceSettingsUiWeightRegular,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -442,6 +456,7 @@ class AppearanceSettingsPage extends StatelessWidget {
         CodeFont.size,
         CodeFont.ligatures,
         CodeFont.uiScale,
+        CodeFont.uiWeight,
         CodeFont.terminalSize,
         CodeFont.terminalFamilies,
         EditorWordWrap.on,
@@ -479,6 +494,7 @@ class AppearanceSettingsPage extends StatelessWidget {
         final sizeShown = '${CodeFont.size.value.round()}';
         final uiScaleStep = CodeFont.uiScale.value - CodeFont.minUiScale;
         final uiScaleShown = '${CodeFont.uiScale.value}';
+        final uiWeightShown = _uiWeightName(context, CodeFont.uiWeight.value);
         final terminalFamilies = CodeFont.terminalFamilies.value;
         final terminalFamilyShown = _terminalFamilyName(
           context,
@@ -871,6 +887,25 @@ class AppearanceSettingsPage extends StatelessWidget {
                     ),
                     onChanged: (step) =>
                         _selectUiScale(CodeFont.minUiScale + step),
+                  ),
+                ),
+                SettingsRow(
+                  label: l10n.appearanceSettingsUiWeight,
+                  description: l10n.appearanceSettingsUiWeightDescription,
+                  trailing: SettingsDropdown(
+                    current: uiWeightShown,
+                    width: 220,
+                    semanticLabel: l10n.appearanceSettingsUiWeightLabel(
+                      uiWeightShown,
+                    ),
+                    entries: () => [
+                      for (final weight in CodeFont.uiWeights)
+                        IdeMenuAction(
+                          _uiWeightName(context, weight),
+                          checked: weight == CodeFont.uiWeight.value,
+                          onSelected: () => _selectUiWeight(weight),
+                        ),
+                    ],
                   ),
                 ),
                 SettingsRow(

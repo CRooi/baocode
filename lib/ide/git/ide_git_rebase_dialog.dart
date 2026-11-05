@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../l10n/l10n.dart';
+import '../../theme/app_theme.dart';
 import '../../theme/codicons.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
 import '../ide_button.dart';
@@ -395,7 +396,11 @@ class _IdeGitRebaseDialogState extends State<IdeGitRebaseDialog> {
               ],
             ),
             child: DefaultTextStyle(
-              style: TextStyle(fontSize: 13, color: foreground),
+              style: TextStyle(
+                fontSize: 13,
+                color: foreground,
+                fontWeight: AppFonts.regular,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

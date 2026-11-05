@@ -18,6 +18,25 @@ abstract final class CodeFont {
   static const uiScaleSettingKey = 'window.uiScale';
   static const terminalSizeSettingKey = 'terminal.integrated.fontSize';
   static const terminalFamilySettingKey = 'terminal.integrated.fontFamily';
+  static const uiWeightSettingKey = 'window.fontWeight';
+
+  /// The weights the window's text may be drawn at, lightest first.
+  static const uiWeights = <int>[300, 400, 500];
+  static const defaultUiWeight = 400;
+
+  /// The weight of the window's text (its body text: what names no weight
+  /// of its own), as the theme draws it.
+  static final ValueNotifier<int> uiWeight = ValueNotifier(defaultUiWeight);
+
+  /// [value] as settings.json has it: one of [uiWeights], else the default.
+  static int parseUiWeight(Object? value) => switch (value) {
+    final num weight when uiWeights.contains(weight) => weight.toInt(),
+    _ => defaultUiWeight,
+  };
+
+  /// [weight] as settings.json keeps it; null (not written) for the default.
+  static int? uiWeightSetting(int weight) =>
+      weight == defaultUiWeight ? null : weight;
 
   /// The stack code is drawn in unless the setting names one. The first
   /// family installed is used, and the rest are what it falls back on (see
@@ -208,6 +227,7 @@ abstract final class CodeFont {
       size.value = parseSize(read(sizeSettingKey));
       ligatures.value = parseLigatures(read(ligaturesSettingKey));
       uiScale.value = parseUiScale(read(uiScaleSettingKey));
+      uiWeight.value = parseUiWeight(read(uiWeightSettingKey));
       terminalSize.value = parseTerminalSize(read(terminalSizeSettingKey));
       final terminal = parseTerminalFamilies(read(terminalFamilySettingKey));
       if (!listEquals(terminal, terminalFamilies.value)) {

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../l10n/l10n.dart';
+import '../../theme/app_theme.dart';
 import '../../theme/codicons.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
 import '../ide_button.dart';
@@ -163,6 +164,7 @@ class _IdeGitRemotesDialogState extends State<IdeGitRemotesDialog> {
                 style: TextStyle(
                   fontSize: 13,
                   color: colors['editorWidget.foreground'],
+                  fontWeight: AppFonts.regular,
                 ),
                 child: FutureBuilder<Map<String, String>>(
                   future: _remotes,

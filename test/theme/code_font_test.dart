@@ -1,7 +1,7 @@
 import 'package:baocode/ide/terminal/terminal_render_theme.dart';
 import 'package:baocode/theme/app_theme.dart';
 import 'package:baocode/theme/code_font.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -12,6 +12,28 @@ void main() {
     CodeFont.uiScale.value = CodeFont.defaultUiScale;
     CodeFont.terminalSize.value = null;
     CodeFont.terminalFamilies.value = null;
+    CodeFont.uiWeight.value = CodeFont.defaultUiWeight;
+  });
+
+  test('the window\'s text weight: 300, 400 or 500, else the default; the '
+      'theme draws body text at it', () {
+    expect(CodeFont.parseUiWeight(null), 400);
+    expect(CodeFont.parseUiWeight(300), 300);
+    expect(CodeFont.parseUiWeight(500.0), 500);
+    expect(CodeFont.parseUiWeight(700), 400);
+    expect(CodeFont.parseUiWeight('300'), 400);
+    expect(CodeFont.uiWeightSetting(400), isNull);
+    expect(CodeFont.uiWeightSetting(300), 300);
+
+    CodeFont.uiWeight.value = 300;
+    final theme = buildAppTheme();
+    final text = ThemeData.localize(
+      theme,
+      theme.typography.geometryThemeFor(ScriptCategory.englishLike),
+    ).textTheme;
+    expect(text.bodyMedium!.fontWeight, FontWeight.w300);
+    expect(text.bodyMedium!.letterSpacing, 0);
+    expect(text.titleMedium!.fontWeight, isNot(FontWeight.w300));
   });
 
   test('the terminal font follows the code font unless it names its own', () {

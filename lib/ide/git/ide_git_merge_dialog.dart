@@ -590,6 +590,7 @@ class IdeGitMergeDialogState extends State<IdeGitMergeDialog> {
                 style: TextStyle(
                   fontSize: 13,
                   color: colors['editorWidget.foreground'],
+                  fontWeight: AppFonts.regular,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

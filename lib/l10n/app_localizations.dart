@@ -5072,6 +5072,24 @@ abstract class AppLocalizations {
   /// **'Context usage'**
   String get composerContextUsage;
 
+  /// No description provided for @composerLimitFiveHour.
+  ///
+  /// In en, this message translates to:
+  /// **'5 hours {percent}%'**
+  String composerLimitFiveHour(int percent);
+
+  /// No description provided for @composerLimitWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week {percent}%'**
+  String composerLimitWeekly(int percent);
+
+  /// No description provided for @composerLimitsLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get composerLimitsLoading;
+
   /// No description provided for @composerSend.
   ///
   /// In en, this message translates to:
@@ -12872,6 +12890,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Interface size: {percent}%'**
   String appearanceSettingsUiScaleLabel(String percent);
+
+  /// No description provided for @appearanceSettingsUiWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Font Weight'**
+  String get appearanceSettingsUiWeight;
+
+  /// No description provided for @appearanceSettingsUiWeightDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'How heavy the interface\'s text and the chat\'s text are drawn.'**
+  String get appearanceSettingsUiWeightDescription;
+
+  /// No description provided for @appearanceSettingsUiWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Font weight: {weight}'**
+  String appearanceSettingsUiWeightLabel(String weight);
+
+  /// No description provided for @appearanceSettingsUiWeightLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get appearanceSettingsUiWeightLight;
+
+  /// No description provided for @appearanceSettingsUiWeightRegular.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get appearanceSettingsUiWeightRegular;
+
+  /// No description provided for @appearanceSettingsUiWeightMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get appearanceSettingsUiWeightMedium;
 
   /// No description provided for @appearanceSettingsTerminalFont.
   ///

@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
 import '../../l10n/l10n.dart';
+import '../../theme/app_theme.dart';
 import '../../theme/codicons.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
 import '../ide_button.dart';
@@ -170,6 +171,7 @@ class _IdeGitCloneDialogState extends State<IdeGitCloneDialog> {
               style: TextStyle(
                 fontSize: 13,
                 color: colors['editorWidget.foreground'],
+                fontWeight: AppFonts.regular,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

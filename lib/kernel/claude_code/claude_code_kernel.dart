@@ -2352,6 +2352,7 @@ class ClaudeCodeKernel
         RateLimitWindow(
           _limitLabel(type),
           (utilization! as num).toDouble(),
+          type: type is String ? type : null,
           resetsAt: resets is int
               ? DateTime.fromMillisecondsSinceEpoch(resets * 1000)
               : null,
@@ -2415,14 +2416,21 @@ class ClaudeCodeKernel
   }
 
   @override
+  bool get usageFresh => switch (_usageFetchedAt) {
+    final at? => DateTime.now().difference(at) < _usageFresh,
+    null => false,
+  };
+
+  @override
+  bool get usageChecking => _fetchingUsage != null;
+
+  @override
   Future<void> refreshUsage() {
-    if (_usageFetchedAt case final at?
-        when DateTime.now().difference(at) < _usageFresh) {
-      return Future.value();
-    }
-    return _fetchingUsage ??= _fetchUsage().whenComplete(
-      () => _fetchingUsage = null,
-    );
+    if (usageFresh) return Future.value();
+    return _fetchingUsage ??= _fetchUsage().whenComplete(() {
+      _fetchingUsage = null;
+      _reportAll();
+    });
   }
 
   Future<void> _fetchUsage() async {
@@ -2492,11 +2500,12 @@ class ClaudeCodeKernel
   static bool _accountUsage(Map<String, Object?> usage) {
     final limits = usage['rate_limits'];
     if (limits is! Map) return false;
-    RateLimitWindow? window(String label, Object? value) {
+    RateLimitWindow? window(String label, Object? value, [String? type]) {
       if (value is! Map || value['utilization'] is! num) return null;
       return RateLimitWindow(
         label,
         (value['utilization'] as num) / 100,
+        type: type,
         resetsAt: switch (value['resets_at']) {
           final String at => DateTime.tryParse(at)?.toLocal(),
           _ => null,
@@ -2512,7 +2521,7 @@ class ClaudeCodeKernel
         'seven_day_opus',
         'seven_day_sonnet',
       ])
-        ?window(_limitLabel(type), limits[type]),
+        ?window(_limitLabel(type), limits[type], type),
       if (models is List)
         for (final model in models)
           if (model is Map && model['display_name'] is String)

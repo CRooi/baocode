@@ -2916,6 +2916,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get composerContextUsage => 'Context usage';
 
   @override
+  String composerLimitFiveHour(int percent) {
+    return '5 hours $percent%';
+  }
+
+  @override
+  String composerLimitWeekly(int percent) {
+    return '1 week $percent%';
+  }
+
+  @override
+  String get composerLimitsLoading => 'Loading…';
+
+  @override
   String get composerSend => 'Send  ↵';
 
   @override
@@ -7933,6 +7946,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String appearanceSettingsUiScaleLabel(String percent) {
     return 'Interface size: $percent%';
   }
+
+  @override
+  String get appearanceSettingsUiWeight => 'Font Weight';
+
+  @override
+  String get appearanceSettingsUiWeightDescription =>
+      'How heavy the interface\'s text and the chat\'s text are drawn.';
+
+  @override
+  String appearanceSettingsUiWeightLabel(String weight) {
+    return 'Font weight: $weight';
+  }
+
+  @override
+  String get appearanceSettingsUiWeightLight => 'Light';
+
+  @override
+  String get appearanceSettingsUiWeightRegular => 'Regular';
+
+  @override
+  String get appearanceSettingsUiWeightMedium => 'Medium';
 
   @override
   String get appearanceSettingsTerminalFont => 'Terminal Font';

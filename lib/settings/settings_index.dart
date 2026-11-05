@@ -88,6 +88,11 @@ List<SettingsEntry> settingsEntries(AppLocalizations l10n) {
     ),
     entry(
       appearance,
+      l10n.appearanceSettingsUiWeight,
+      l10n.appearanceSettingsUiWeightDescription,
+    ),
+    entry(
+      appearance,
       l10n.appearanceSettingsChatWidth,
       l10n.appearanceSettingsChatWidthDescription,
     ),

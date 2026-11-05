@@ -493,6 +493,20 @@ class ChatSession extends ChangeNotifier implements ChatFeed {
     _ => null,
   };
 
+  /// Whether the account's limits were asked for lately (see
+  /// [ReportsUsage.usageFresh]); false when the kernel reports none.
+  bool get usageFresh => switch (_kernel) {
+    final ReportsUsage kernel => kernel.usageFresh,
+    _ => false,
+  };
+
+  /// Whether the account's limits are being asked for now (see
+  /// [ReportsUsage.usageChecking]).
+  bool get usageChecking => switch (_kernel) {
+    final ReportsUsage kernel => kernel.usageChecking,
+    _ => false,
+  };
+
   /// Asks for the account's limits now (see [ReportsUsage.refreshUsage]).
   void refreshUsage() {
     if (_kernel case final ReportsUsage kernel) {

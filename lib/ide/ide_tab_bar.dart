@@ -9,6 +9,7 @@ import '../keybindings/keybinding_service.dart';
 import '../l10n/l10n.dart';
 import '../theme/codicons.dart';
 import '../theme/material_file_icons.dart';
+import '../theme/app_theme.dart';
 import '../theme/workbench_theme.dart' show themeColors;
 import '../workspace/window_controls.dart';
 import 'editor_minimap_setting.dart';
@@ -389,7 +390,7 @@ class MarkdownSwitch extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: selected ? FontWeight.w600 : AppFonts.regular,
                   color: selected
                       ? themeColors['foreground']
                       : themeColors['descriptionForeground'],

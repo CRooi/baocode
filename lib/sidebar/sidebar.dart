@@ -3610,7 +3610,7 @@ class _ThreadRow extends StatelessWidget {
               style: TextStyle(
                 color: selected ? foreground : AppColors.textFaint,
                 fontSize: 11.5,
-                fontWeight: FontWeight.normal,
+                fontWeight: AppFonts.regular,
               ),
             ),
           ],
@@ -3631,7 +3631,7 @@ class _ThreadRow extends StatelessWidget {
         fontSize: 12.5,
         fontWeight: status == ThreadStatus.unread
             ? FontWeight.w600
-            : FontWeight.normal,
+            : AppFonts.regular,
       ),
     );
   }

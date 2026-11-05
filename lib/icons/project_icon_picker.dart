@@ -1322,7 +1322,7 @@ class _Tab extends StatelessWidget {
             style: TextStyle(
               fontSize: 12.5,
               color: selected || hovered ? AppColors.text : AppColors.textMuted,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+              fontWeight: selected ? FontWeight.w600 : AppFonts.regular,
             ),
           ),
         ),

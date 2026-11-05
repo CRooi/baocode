@@ -27,6 +27,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../base/tooltip_scroll.dart';
+import '../theme/app_theme.dart';
 import '../theme/workbench_theme.dart' show themeColors;
 
 /// The workbench hover's colors, in the color theme.
@@ -124,7 +125,7 @@ class IdeHoverBox extends StatelessWidget {
             fontSize: compact ? 12 : 13,
             height: 19 / (compact ? 12 : 13),
             decoration: TextDecoration.none,
-            fontWeight: FontWeight.w400,
+            fontWeight: AppFonts.regular,
           ),
           child: child,
         ),

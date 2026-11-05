@@ -1785,22 +1785,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String sidebarTimeMinutes(int count) {
-    return '$count分钟';
+    return '$count 分钟';
   }
 
   @override
   String sidebarTimeHours(int count) {
-    return '$count小时';
+    return '$count 小时';
   }
 
   @override
   String sidebarTimeDays(int count) {
-    return '$count天';
+    return '$count 天';
   }
 
   @override
   String sidebarTimeWeeks(int count) {
-    return '$count周';
+    return '$count 周';
   }
 
   @override
@@ -2811,6 +2811,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get composerContextUsage => '上下文用量';
 
   @override
+  String composerLimitFiveHour(int percent) {
+    return '5 小时 $percent%';
+  }
+
+  @override
+  String composerLimitWeekly(int percent) {
+    return '1 周 $percent%';
+  }
+
+  @override
+  String get composerLimitsLoading => '载入中…';
+
+  @override
   String get composerSend => '发送  ↵';
 
   @override
@@ -2835,7 +2848,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String stripRunningElapsed(int seconds) {
-    return '运行中 · $seconds秒';
+    return '运行中 · $seconds 秒';
   }
 
   @override
@@ -2970,27 +2983,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String usageInMinutes(int minutes) {
-    return '$minutes分钟后';
+    return '$minutes 分钟后';
   }
 
   @override
   String usageInHours(int hours) {
-    return '$hours小时后';
+    return '$hours 小时后';
   }
 
   @override
   String usageInHoursMinutes(int hours, int minutes) {
-    return '$hours小时$minutes分钟后';
+    return '$hours 小时 $minutes 分钟后';
   }
 
   @override
   String usageInDays(int days) {
-    return '$days天后';
+    return '$days 天后';
   }
 
   @override
   String usageInDaysHours(int days, int hours) {
-    return '$days天$hours小时后';
+    return '$days 天 $hours 小时后';
   }
 
   @override
@@ -7460,6 +7473,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String appearanceSettingsUiScaleLabel(String percent) {
     return '界面大小：$percent%';
   }
+
+  @override
+  String get appearanceSettingsUiWeight => '字重';
+
+  @override
+  String get appearanceSettingsUiWeightDescription => '界面文字和对话正文的粗细。';
+
+  @override
+  String appearanceSettingsUiWeightLabel(String weight) {
+    return '字重：$weight';
+  }
+
+  @override
+  String get appearanceSettingsUiWeightLight => '细';
+
+  @override
+  String get appearanceSettingsUiWeightRegular => '常规';
+
+  @override
+  String get appearanceSettingsUiWeightMedium => '中等';
 
   @override
   String get appearanceSettingsTerminalFont => '终端字体';

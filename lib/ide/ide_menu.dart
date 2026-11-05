@@ -27,6 +27,7 @@ import 'package:flutter/services.dart';
 import '../chat/composer/composer_mock_data.dart' show fuzzyMatch;
 import '../l10n/l10n.dart';
 import '../theme/codicons.dart';
+import '../theme/app_theme.dart';
 import '../theme/workbench_theme.dart' show themeColors;
 import '../workspace/window_controls.dart';
 import 'ide_hover.dart';
@@ -773,7 +774,7 @@ class _MenuPanel extends StatelessWidget {
           fontSize: 13,
           color: IdeMenuColors.foreground,
           decoration: TextDecoration.none,
-          fontWeight: FontWeight.w400,
+          fontWeight: AppFonts.regular,
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 4),

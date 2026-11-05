@@ -74,6 +74,10 @@ ComposerController composerController(WidgetTester tester) =>
     tester.widget<MarkdownEditor>(composerEditor()).controller
         as ComposerController;
 
+/// The context ring's hover: loading until the plan's limits are known,
+/// then their use.
+final _ringHover = RegExp(r'^(Loading…|5 hours)');
+
 /// Types [text] at the end of the composer through the text input channel.
 Future<void> typeText(WidgetTester tester, String text) =>
     typeInto(tester, composerEditor(), text);
@@ -478,7 +482,9 @@ void main() {
   testWidgets('context panel opens from the ring', (tester) async {
     ClaudeCodeKernel.forgetAccount();
     await pumpScreen(tester);
-    final ring = find.byTooltip('Context usage');
+    // Not asked for yet: to be, as the pointer comes onto the ring.
+    expect(find.byTooltip('Loading…'), findsOneWidget);
+    final ring = find.byTooltip(_ringHover);
     await tester.tap(ring);
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(ContextUsagePanel), findsOneWidget);
@@ -486,6 +492,11 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Plan usage'), findsOneWidget);
     expect(find.text('Weekly Opus limit'), findsOneWidget);
+    // Known, the ring's hover is the five-hour and weekly use, a line each.
+    expect(
+      find.byTooltip(RegExp(r'^5 hours \d+%\n1 week \d+%$')),
+      findsOneWidget,
+    );
     // A circle, not squeezed by the taller box it sits in.
     final ringSize = tester.getSize(
       find.descendant(of: ring, matching: find.byType(CustomPaint)).last,
@@ -523,7 +534,7 @@ void main() {
         .position;
     expect(position.pixels, position.maxScrollExtent);
 
-    final ring = find.byTooltip('Context usage');
+    final ring = find.byTooltip(_ringHover);
     await tester.tap(ring);
     // Every frame of the resize animation, not just the last one.
     for (var i = 0; i < 12; i++) {

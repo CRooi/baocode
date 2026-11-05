@@ -351,9 +351,18 @@ class ContextUsage {
 
 /// A usage limit of the account, e.g. its five-hour window.
 class RateLimitWindow {
-  const RateLimitWindow(this.label, this.utilization, {this.resetsAt});
+  const RateLimitWindow(
+    this.label,
+    this.utilization, {
+    this.resetsAt,
+    this.type,
+  });
 
   final String label;
+
+  /// Which window it is, as the agent names it: `five_hour`, `seven_day`,
+  /// …; null when it does not say.
+  final String? type;
 
   /// 0 to 1.
   final double utilization;

@@ -1743,10 +1743,13 @@ class ChatComposerState extends State<ChatComposer>
         ChatCommandIds.openModelPicker,
         input,
       ),
-      ring: ChatKeys.titleWithKey(
-        l10n.composerContextUsage,
-        ChatCommandIds.toggleContextPanel,
-        const {...input, ChatContextKeys.inChat: true},
+      ring: _ringHover(
+        session,
+        ChatKeys.titleWithKey(
+          l10n.composerContextUsage,
+          ChatCommandIds.toggleContextPanel,
+          const {...input, ChatContextKeys.inChat: true},
+        ),
       ),
     );
     final model = session.models;
@@ -2153,17 +2156,46 @@ class ChatComposerState extends State<ChatComposer>
   /// The most used of the account's limits (its five-hour and weekly
   /// windows), 0 to 1; null when none is known.
   static double? _limitUsed(ChatSession session) {
-    final now = DateTime.now();
     double? most;
     for (final limit in session.stats?.limits ?? const <RateLimitWindow>[]) {
-      // Past its reset, the window starts over.
-      final resets = limit.resetsAt;
-      final used = resets != null && !resets.isAfter(now)
-          ? 0.0
-          : limit.utilization.clamp(0.0, 1.0);
+      final used = _used(limit);
       if (most == null || used > most) most = used;
     }
     return most;
+  }
+
+  /// What of [limit] is used, 0 to 1: none past its reset, when the window
+  /// starts over.
+  static double _used(RateLimitWindow limit) {
+    final resets = limit.resetsAt;
+    return resets != null && !resets.isAfter(DateTime.now())
+        ? 0.0
+        : limit.utilization.clamp(0.0, 1.0);
+  }
+
+  /// The ring's hover: the five-hour and weekly windows' use, a line each;
+  /// loading while they are asked for, or are to be (none asked for
+  /// lately); [fallback] when neither is known, nor to be.
+  String _ringHover(ChatSession session, String fallback) {
+    final l10n = context.l10n;
+    final stats = session.stats;
+    if (stats == null) return fallback;
+    if (session.usageChecking ||
+        !session.usageFresh && stats.limitsState == LimitsState.idle) {
+      return l10n.composerLimitsLoading;
+    }
+    final limits = stats.limits;
+    int? percent(String type) =>
+        switch (limits.where((limit) => limit.type == type).firstOrNull) {
+          final limit? => (_used(limit) * 100).round(),
+          null => null,
+        };
+    final lines = [
+      if (percent('five_hour') case final used?)
+        l10n.composerLimitFiveHour(used),
+      if (percent('seven_day') case final used?) l10n.composerLimitWeekly(used),
+    ];
+    return lines.isEmpty ? fallback : lines.join('\n');
   }
 
   Widget _buildToolbar() {
@@ -2197,6 +2229,11 @@ class ChatComposerState extends State<ChatComposer>
               active: widget.contextPanelOpen,
               // Toggle Context Panel's, which has none by default.
               tooltip: _hovers.ring,
+              onHover: () {
+                session.refreshUsage();
+                // Its hover as it is now: loading, if that asks again.
+                setState(() {});
+              },
               onTap: onToggle,
             ),
             const SizedBox(width: 2),
@@ -2314,9 +2351,13 @@ class _ContextRing extends StatelessWidget {
     required this.fraction,
     required this.active,
     required this.tooltip,
+    required this.onHover,
     required this.onTap,
     this.limit = false,
   });
+
+  /// The pointer came onto the ring.
+  final VoidCallback onHover;
 
   final double fraction;
 
@@ -2332,41 +2373,44 @@ class _ContextRing extends StatelessWidget {
     final colors = themeColors;
     return IdeHover(
       message: tooltip,
-      child: HoverBuilder(
-        cursor: SystemMouseCursors.click,
-        builder: (context, hovered) => GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            width: 23,
-            height: 22,
-            // The ring keeps its square: the box is taller than it.
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: active
-                  ? colors['toolbar.activeBackground']
-                  : hovered
-                  ? colors['toolbar.hoverBackground']
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: SizedBox.square(
-              dimension: 13,
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(end: fraction),
-                duration: const Duration(milliseconds: 400),
-                builder: (context, value, _) => CustomPaint(
-                  painter: _RingPainter(
-                    value,
-                    track: colors['disabledForeground'],
-                    arc:
-                        colors[!limit
-                            ? 'icon.foreground'
-                            : fraction >= 0.9
-                            ? 'editorError.foreground'
-                            : fraction >= 0.7
-                            ? 'editorWarning.foreground'
-                            : 'icon.foreground'],
+      child: MouseRegion(
+        onEnter: (_) => onHover(),
+        child: HoverBuilder(
+          cursor: SystemMouseCursors.click,
+          builder: (context, hovered) => GestureDetector(
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              width: 23,
+              height: 22,
+              // The ring keeps its square: the box is taller than it.
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: active
+                    ? colors['toolbar.activeBackground']
+                    : hovered
+                    ? colors['toolbar.hoverBackground']
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: SizedBox.square(
+                dimension: 13,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(end: fraction),
+                  duration: const Duration(milliseconds: 400),
+                  builder: (context, value, _) => CustomPaint(
+                    painter: _RingPainter(
+                      value,
+                      track: colors['disabledForeground'],
+                      arc:
+                          colors[!limit
+                              ? 'icon.foreground'
+                              : fraction >= 0.9
+                              ? 'editorError.foreground'
+                              : fraction >= 0.7
+                              ? 'editorWarning.foreground'
+                              : 'icon.foreground'],
+                    ),
                   ),
                 ),
               ),

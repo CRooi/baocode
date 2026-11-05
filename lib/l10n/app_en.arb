@@ -1803,6 +1803,23 @@
   "composerApprovalFullAccess": "Bypass permissions",
   "composerApprovalFullAccessDetail": "No checks: edits and commands run without asking",
   "composerContextUsage": "Context usage",
+  "composerLimitFiveHour": "5 hours {percent}%",
+  "@composerLimitFiveHour": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "composerLimitWeekly": "1 week {percent}%",
+  "composerLimitsLoading": "Loading…",
+  "@composerLimitWeekly": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "composerSend": "Send  ↵",
   "composerStop": "Stop",
   "composerSettingContext": "Context",
@@ -5600,6 +5617,19 @@
       }
     }
   },
+  "appearanceSettingsUiWeight": "Font Weight",
+  "appearanceSettingsUiWeightDescription": "How heavy the interface's text and the chat's text are drawn.",
+  "appearanceSettingsUiWeightLabel": "Font weight: {weight}",
+  "@appearanceSettingsUiWeightLabel": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "appearanceSettingsUiWeightLight": "Light",
+  "appearanceSettingsUiWeightRegular": "Regular",
+  "appearanceSettingsUiWeightMedium": "Medium",
   "appearanceSettingsTerminalFont": "Terminal Font",
   "appearanceSettingsTerminalFontDescription": "The font of terminal text. By default it follows the code font; it can be set on its own.",
   "appearanceSettingsTerminalFontFollow": "Follow Code Font",

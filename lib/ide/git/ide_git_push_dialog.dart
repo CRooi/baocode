@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
 import '../../l10n/l10n.dart';
+import '../../theme/app_theme.dart';
 import '../../theme/codicons.dart';
 import '../../theme/material_file_icons.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
@@ -193,7 +194,11 @@ class _IdeGitPushDialogState extends State<IdeGitPushDialog> {
                 ],
               ),
               child: DefaultTextStyle(
-                style: TextStyle(fontSize: 13, color: foreground),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: foreground,
+                  fontWeight: AppFonts.regular,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

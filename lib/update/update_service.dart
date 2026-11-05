@@ -276,9 +276,10 @@ class UpdateService extends ChangeNotifier {
   /// sidebar's Update button): one downloaded; one found where the app
   /// does not download by itself (`manual`) or a version the user skipped
   /// (not downloaded, nor offered, but there to install); one mandatory.
+  /// None while updates are off (`none`).
   bool get pending {
     final release = _release;
-    if (release == null) return false;
+    if (release == null || mode == UpdateMode.none) return false;
     if (isMandatory(release)) return true;
     if (store.skippedVersion == '${release.version}') return true;
     return _file != null || mode != UpdateMode.automatic;
@@ -302,6 +303,9 @@ class UpdateService extends ChangeNotifier {
 
   /// The versions offered this run.
   final Set<AppVersion> _offered = {};
+
+  /// The mode as listeners last heard of it (see [_schedule]).
+  UpdateMode? _shownMode;
 
   Timer? _firstCheck;
   Timer? _periodic;
@@ -349,6 +353,11 @@ class UpdateService extends ChangeNotifier {
   /// it becomes so, then every [checkInterval].
   void _schedule() {
     if (_disposed) return;
+    // What shows an update (the sidebar's button) follows the mode.
+    if (mode != _shownMode) {
+      _shownMode = mode;
+      notifyListeners();
+    }
     if (mode != UpdateMode.automatic) {
       _firstCheck?.cancel();
       _periodic?.cancel();
