@@ -94,7 +94,7 @@ class StepHeader extends StatelessWidget {
             TextSpan(children: spans),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: AppColors.textMuted, fontSize: fontSize),
+            style: TextStyle(color: AppColors.textFaint, fontSize: fontSize),
           )
         : running
         ? ShimmerText(
@@ -102,7 +102,7 @@ class StepHeader extends StatelessWidget {
             ellipsis: false,
             padding: EdgeInsets.zero,
             style: TextStyle(fontWeight: weight),
-            faint: faint,
+            faint: true,
           )
         : Text.rich(
             TextSpan(
@@ -120,7 +120,7 @@ class StepHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: faint ? AppColors.textFaint : AppColors.textMuted,
+              color: AppColors.textFaint,
               fontSize: fontSize,
               fontWeight: weight,
             ),
