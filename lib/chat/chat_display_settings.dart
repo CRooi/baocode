@@ -153,6 +153,9 @@ abstract final class ChatFontSize {
   /// (headings, inline code) are scaled by.
   static double get scale => current.value / defaultSize;
 
+  /// [size], made for [defaultSize], at [current].
+  static double scaled(double size) => size * scale;
+
   static void follow(Listenable changes, Object? Function() read) {
     void update() => current.value = parse(read());
     update();

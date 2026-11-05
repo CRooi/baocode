@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../base/smooth_scroll.dart';
 import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
+import '../chat_display_settings.dart';
 import 'agent_step.dart' show AgentStep;
 import 'edge_fade_mask.dart';
 import 'finite_selection_edges.dart';
@@ -100,8 +101,11 @@ class ThinkingSection extends StatefulWidget {
 }
 
 class _ThinkingSectionState extends State<ThinkingSection> {
-  static TextStyle get _textStyle =>
-      TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.6);
+  static TextStyle get _textStyle => TextStyle(
+    color: AppColors.textMuted,
+    fontSize: ChatFontSize.scaled(13),
+    height: 1.6,
+  );
 
   /// Seven lines of text.
   static const _liveMaxHeight = 13 * 1.6 * 7;

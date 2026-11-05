@@ -100,6 +100,7 @@ import 'settings/app_locale.dart';
 import 'settings/app_settings.dart';
 import 'settings/data_dir_startup.dart';
 import 'settings/user_settings.dart';
+import 'sidebar/sidebar_font_size.dart';
 import 'sidebar/sidebar_times.dart';
 import 'telemetry/telemetry_platform.dart';
 import 'stash/stash_editor.dart' show StashEditor;
@@ -614,6 +615,10 @@ void followSettingsFiles(SettingsFiles files) {
   ChatFontSize.follow(
     files.settings,
     () => files.settings[ChatFontSize.settingKey],
+  );
+  SidebarFontSize.follow(
+    files.settings,
+    () => files.settings[SidebarFontSize.settingKey],
   );
   ShowChangedFiles.follow(
     files.settings,

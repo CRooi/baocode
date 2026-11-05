@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
+import '../chat_display_settings.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
 import '../chat_models.dart';
 import '../floating/hover_tooltip.dart';
@@ -267,7 +268,7 @@ class _QuestionAnswers extends StatelessWidget {
             question,
             style: TextStyle(
               color: AppColors.textMuted,
-              fontSize: 12.5,
+              fontSize: ChatFontSize.scaled(12.5),
               height: 1.5,
             ),
           ),
@@ -288,7 +289,7 @@ class _QuestionAnswers extends StatelessWidget {
                   answer,
                   style: TextStyle(
                     color: AppColors.text,
-                    fontSize: 13,
+                    fontSize: ChatFontSize.scaled(13),
                     height: 1.5,
                   ),
                 ),
@@ -341,7 +342,7 @@ class _TodoList extends StatelessWidget {
             todo.content,
             style: TextStyle(
               color: done ? AppColors.textFaint : AppColors.text,
-              fontSize: 12.5,
+              fontSize: ChatFontSize.scaled(12.5),
               height: 1.6,
               decoration: done ? TextDecoration.lineThrough : null,
               decorationColor: AppColors.textFaint,
@@ -536,7 +537,10 @@ class _SetGoalButtonState extends State<_SetGoalButton> {
     if (_set) {
       return Text(
         l10n.goalAdopted,
-        style: TextStyle(color: AppColors.textFaint, fontSize: 12),
+        style: TextStyle(
+          color: AppColors.textFaint,
+          fontSize: ChatFontSize.scaled(12),
+        ),
       );
     }
     return Semantics(
@@ -557,7 +561,10 @@ class _SetGoalButtonState extends State<_SetGoalButton> {
             ),
             child: Text(
               l10n.goalAdopt,
-              style: TextStyle(color: AppColors.text, fontSize: 12),
+              style: TextStyle(
+                color: AppColors.text,
+                fontSize: ChatFontSize.scaled(12),
+              ),
             ),
           ),
         ),

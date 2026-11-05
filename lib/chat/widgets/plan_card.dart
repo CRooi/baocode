@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 
 import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
+import '../chat_display_settings.dart';
 import '../chat_models.dart';
 import '../side_panel/file_open.dart';
 import 'hover_builder.dart';
@@ -57,7 +58,10 @@ class PlanCard extends StatelessWidget {
   /// Sent back: one line.
   Widget _folded(BuildContext context, VoidCallback? open) {
     final l10n = context.l10n;
-    final faint = TextStyle(color: AppColors.textFaint, fontSize: 12.5);
+    final faint = TextStyle(
+      color: AppColors.textFaint,
+      fontSize: ChatFontSize.scaled(12.5),
+    );
     return HoverBuilder(
       cursor: open == null ? MouseCursor.defer : SystemMouseCursors.click,
       builder: (context, hovered) => GestureDetector(
@@ -169,7 +173,7 @@ class PlanCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: AppColors.textPrimary,
-                fontSize: 14,
+                fontSize: ChatFontSize.scaled(14),
                 fontWeight: FontWeight.w600,
                 height: 1.35,
               ),
@@ -179,7 +183,10 @@ class PlanCard extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               l10n.planCardRound(item.round),
-              style: TextStyle(color: AppColors.textFaint, fontSize: 11.5),
+              style: TextStyle(
+                color: AppColors.textFaint,
+                fontSize: ChatFontSize.scaled(11.5),
+              ),
             ),
           ],
         ],
@@ -231,7 +238,9 @@ class _PlanPreviewState extends State<_PlanPreview> {
       maxHeight: PlanCard.maxBodyHeight,
       child: MarkdownView(
         widget.text,
-        style: MarkdownView.baseStyle.copyWith(fontSize: 13),
+        style: MarkdownView.baseStyle.copyWith(
+          fontSize: ChatFontSize.scaled(13),
+        ),
       ),
     ),
   );

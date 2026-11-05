@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
+import '../chat_display_settings.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
 import '../chat_models.dart';
 import '../step_folds.dart';
@@ -168,7 +169,7 @@ class WorkFoldLine extends StatelessWidget {
     final count = TextStyle(
       fontFamily: AppFonts.mono,
       fontFamilyFallback: AppFonts.monoFallbacks,
-      fontSize: 11.5,
+      fontSize: ChatFontSize.scaled(11.5),
     );
     final header = StepHeader(
       verb: text(worked, edits, l10n: l10n),

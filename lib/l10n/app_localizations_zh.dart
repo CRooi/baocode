@@ -7404,6 +7404,18 @@ class AppLocalizationsZh extends AppLocalizations {
       '在侧边栏每个智能体的右侧显示它最后一次活动的时间。关闭后只在鼠标悬停时显示。';
 
   @override
+  String get appearanceSettingsSidebarFontSize => '侧边栏字号';
+
+  @override
+  String get appearanceSettingsSidebarFontSizeDescription =>
+      '侧边栏中项目和智能体的文字大小，行高随之变化。';
+
+  @override
+  String appearanceSettingsSidebarFontSizeLabel(String size) {
+    return '侧边栏字号：$size';
+  }
+
+  @override
   String get appearanceSettingsMinimapGlass => '液态玻璃不透明度';
 
   @override

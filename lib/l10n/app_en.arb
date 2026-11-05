@@ -5585,6 +5585,16 @@
   "appearanceSettingsWindowBlurDescription": "The system's blur under the windows (macOS's sidebar material, Windows 11's acrylic): what is behind them shows through the sidebar and the conversation. Off: the windows are opaque.",
   "appearanceSettingsSidebarTimes": "Times in the Sidebar",
   "appearanceSettingsSidebarTimesDescription": "Each agent in the sidebar ends with when it last did something. Off: only its hover tells it.",
+  "appearanceSettingsSidebarFontSize": "Sidebar Font Size",
+  "appearanceSettingsSidebarFontSizeDescription": "The size of the projects and agents in the sidebar; their rows grow with it.",
+  "appearanceSettingsSidebarFontSizeLabel": "Sidebar font size: {size}",
+  "@appearanceSettingsSidebarFontSizeLabel": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "appearanceSettingsMinimapGlass": "Glass Opacity",
   "appearanceSettingsMinimapGlassDescription": "How much the liquid glass over where you are in the minimap shows: its tint, shadow and light. At 0% only the part in view stands out.",
   "appearanceSettingsMinimapGlassLabel": "Minimap glass opacity: {opacity}",

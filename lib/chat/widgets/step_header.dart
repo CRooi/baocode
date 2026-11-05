@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../../base/smooth_scroll.dart';
 import '../../theme/app_theme.dart';
+import '../chat_display_settings.dart';
 import 'finite_selection_edges.dart';
 import 'hover_builder.dart';
 import 'hover_scrollbar.dart';
@@ -77,7 +78,7 @@ class StepHeader extends StatelessWidget {
   final bool bold;
 
   /// Its text's size, as steps read.
-  static const fontSize = 13.0;
+  static double get fontSize => ChatFontSize.scaled(13);
 
   /// The line as text, e.g. for copying.
   static String text(String verb, String object, [String? detail]) =>

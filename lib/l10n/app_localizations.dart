@@ -12771,6 +12771,24 @@ abstract class AppLocalizations {
   /// **'Each agent in the sidebar ends with when it last did something. Off: only its hover tells it.'**
   String get appearanceSettingsSidebarTimesDescription;
 
+  /// No description provided for @appearanceSettingsSidebarFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar Font Size'**
+  String get appearanceSettingsSidebarFontSize;
+
+  /// No description provided for @appearanceSettingsSidebarFontSizeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The size of the projects and agents in the sidebar; their rows grow with it.'**
+  String get appearanceSettingsSidebarFontSizeDescription;
+
+  /// No description provided for @appearanceSettingsSidebarFontSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar font size: {size}'**
+  String appearanceSettingsSidebarFontSizeLabel(String size);
+
   /// No description provided for @appearanceSettingsMinimapGlass.
   ///
   /// In en, this message translates to:

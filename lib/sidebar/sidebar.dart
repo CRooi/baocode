@@ -45,6 +45,7 @@ import '../workspace/window_controls.dart';
 import '../workspace/workspace.dart';
 import '../workspace/workspace_dialog.dart';
 import 'sidebar_menu.dart';
+import 'sidebar_font_size.dart';
 import 'sidebar_times.dart';
 
 enum SidebarGrouping {
@@ -288,7 +289,8 @@ class Sidebar extends StatefulWidget {
 class _SidebarState extends State<Sidebar>
     with IdeKeyboardList<Sidebar>
     implements ChatDragList {
-  static const _rowHeight = IdeListColors.rowHeight;
+  static double get _rowHeight =>
+      SidebarFontSize.scaled(IdeListColors.rowHeight);
 
   /// The agents a project shows until asked for more (pinned ones apart).
   static const _recent = 5;
@@ -391,6 +393,7 @@ class _SidebarState extends State<Sidebar>
     });
     _workspace.addListener(_markRowsDirty);
     SidebarTimes.shown.addListener(_timesChanged);
+    SidebarFontSize.current.addListener(_timesChanged);
     _listFocus.addListener(_focusChanged);
     widget.link?._state = this;
     _attachDrag(widget.drag);
@@ -448,6 +451,7 @@ class _SidebarState extends State<Sidebar>
     _detachDrag(widget.drag);
     _workspace.removeListener(_markRowsDirty);
     SidebarTimes.shown.removeListener(_timesChanged);
+    SidebarFontSize.current.removeListener(_timesChanged);
     _clock.cancel();
     _autoScroll?.cancel();
     _listFocus.removeListener(_focusChanged);
@@ -1566,10 +1570,22 @@ class _SidebarState extends State<Sidebar>
             ];
       final rows = <_ListRow>[];
       for (final group in groups) {
-        rows.add(_ListRow(_ListRowKind.header, group, ValueKey(group.id), 32));
+        rows.add(
+          _ListRow(
+            _ListRowKind.header,
+            group,
+            ValueKey(group.id),
+            SidebarFontSize.scaled(32),
+          ),
+        );
         if (group.pinned && group.threads.isEmpty) {
           rows.add(
-            _ListRow(_ListRowKind.pinZone, group, const ValueKey(#pinZone), 30),
+            _ListRow(
+              _ListRowKind.pinZone,
+              group,
+              const ValueKey(#pinZone),
+              SidebarFontSize.scaled(30),
+            ),
           );
         }
         final shown = _rows(group);
@@ -1602,7 +1618,7 @@ class _SidebarState extends State<Sidebar>
               _ListRowKind.more,
               group,
               ValueKey('${group.id}.more'),
-              24,
+              SidebarFontSize.scaled(24),
               more: shown,
             ),
           );
@@ -1675,74 +1691,79 @@ class _SidebarState extends State<Sidebar>
             _listFocus.requestFocus();
             listClear();
           },
-          child: ListView.builder(
-            controller: _listScroll,
-            padding: const EdgeInsets.only(bottom: 12),
-            itemCount: rows.length,
-            itemExtentBuilder: (index, _) =>
-                index < rows.length ? rows[index].extent : null,
-            findChildIndexCallback: (key) => _rowIndices[key],
-            itemBuilder: (context, index) {
-              final row = rows[index];
-              final child = switch (row.kind) {
-                _ListRowKind.header => _Slot(
-                  slot: row.group.id,
-                  slots: _slots,
-                  child: _buildHeader(row.group, projects),
-                ),
-                _ListRowKind.thread => _buildRow(
-                  row.thread!,
-                  row.group,
-                  aside: row.aside,
-                ),
-                _ListRowKind.pinZone => _PinZone(
-                  height: _rowHeight,
-                  active: _spot?.group.id == row.group.id,
-                ),
-                _ListRowKind.more => _MoreRow(
-                  label: row.more!.less
-                      ? context.l10n.sidebarShowLess
-                      : context.l10n.sidebarShowMore(row.more!.more),
-                  onTap: () => _workspace.toggleExpanded(row.group.id),
-                ),
-              };
-              final spot = _spot;
-              final before =
-                  (row.thread != null && identical(spot?.before, row.thread)) ||
-                  (row.kind == _ListRowKind.header &&
-                      row.group.project != null &&
-                      _projectSpot == projects.indexOf(row.group.project!));
-              final after =
-                  (row.thread != null && identical(spot?.after, row.thread)) ||
-                  (row.kind == _ListRowKind.header &&
-                      spot != null &&
-                      spot.group.id == row.group.id &&
-                      spot.before == null &&
-                      spot.after == null &&
-                      row.group.threads.isNotEmpty) ||
-                  (index == rows.length - 1 && _projectSpot == projects.length);
-              return Stack(
-                key: row.key,
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(child: child),
-                  if (before)
-                    const Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: _DropLine(),
-                    ),
-                  if (after)
-                    const Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: _DropLine(),
-                    ),
-                ],
-              );
-            },
+          child: _SidebarText(
+            child: ListView.builder(
+              controller: _listScroll,
+              padding: const EdgeInsets.only(bottom: 12),
+              itemCount: rows.length,
+              itemExtentBuilder: (index, _) =>
+                  index < rows.length ? rows[index].extent : null,
+              findChildIndexCallback: (key) => _rowIndices[key],
+              itemBuilder: (context, index) {
+                final row = rows[index];
+                final child = switch (row.kind) {
+                  _ListRowKind.header => _Slot(
+                    slot: row.group.id,
+                    slots: _slots,
+                    child: _buildHeader(row.group, projects),
+                  ),
+                  _ListRowKind.thread => _buildRow(
+                    row.thread!,
+                    row.group,
+                    aside: row.aside,
+                  ),
+                  _ListRowKind.pinZone => _PinZone(
+                    height: _rowHeight,
+                    active: _spot?.group.id == row.group.id,
+                  ),
+                  _ListRowKind.more => _MoreRow(
+                    label: row.more!.less
+                        ? context.l10n.sidebarShowLess
+                        : context.l10n.sidebarShowMore(row.more!.more),
+                    onTap: () => _workspace.toggleExpanded(row.group.id),
+                  ),
+                };
+                final spot = _spot;
+                final before =
+                    (row.thread != null &&
+                        identical(spot?.before, row.thread)) ||
+                    (row.kind == _ListRowKind.header &&
+                        row.group.project != null &&
+                        _projectSpot == projects.indexOf(row.group.project!));
+                final after =
+                    (row.thread != null &&
+                        identical(spot?.after, row.thread)) ||
+                    (row.kind == _ListRowKind.header &&
+                        spot != null &&
+                        spot.group.id == row.group.id &&
+                        spot.before == null &&
+                        spot.after == null &&
+                        row.group.threads.isNotEmpty) ||
+                    (index == rows.length - 1 &&
+                        _projectSpot == projects.length);
+                return Stack(
+                  key: row.key,
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(child: child),
+                    if (before)
+                      const Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: _DropLine(),
+                      ),
+                    if (after)
+                      const Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: _DropLine(),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -2521,6 +2542,21 @@ class _NewAgentButton extends StatelessWidget {
   }
 }
 
+/// [child]'s text at the sidebar's size ([SidebarFontSize]).
+class _SidebarText extends StatelessWidget {
+  const _SidebarText({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => MediaQuery(
+    data: MediaQuery.of(context).copyWith(
+      textScaler: SidebarFontSize.textScaler(MediaQuery.textScalerOf(context)),
+    ),
+    child: child,
+  );
+}
+
 /// A row under New Agent that opens something of the window's (Search,
 /// Customize): an icon and a label, as Cursor's sidebar has them.
 class _NavRow extends StatelessWidget {
@@ -2564,57 +2600,59 @@ class _NavRow extends StatelessWidget {
         cursor: SystemMouseCursors.click,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: IdeListRow(
-            height: IdeListColors.rowHeight,
-            selected: selected,
-            keepSelectionActive: true,
-            onTap: onTap,
-            builder: (context, hovered) {
-              final foreground = selected
-                  ? IdeListColors.activeSelectionForeground
-                  : hovered
-                  ? IdeListColors.hoverForeground
-                  : IdeListColors.foreground;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: ExcludeSemantics(
-                  child: Row(
-                    children: [
-                      // In the same room as the others', the label lined
-                      // up with theirs, though [iconSize] is larger.
-                      SizedBox.square(
-                        dimension: 15,
-                        child: OverflowBox(
-                          maxWidth: iconSize,
-                          maxHeight: iconSize,
-                          child: Icon(
-                            icon,
-                            size: iconSize,
-                            color: selected
-                                ? themeColors.get(
-                                        'list.activeSelectionIconForeground',
-                                      ) ??
-                                      foreground
-                                : AppColors.textMuted,
+          child: _SidebarText(
+            child: IdeListRow(
+              height: SidebarFontSize.scaled(IdeListColors.rowHeight),
+              selected: selected,
+              keepSelectionActive: true,
+              onTap: onTap,
+              builder: (context, hovered) {
+                final foreground = selected
+                    ? IdeListColors.activeSelectionForeground
+                    : hovered
+                    ? IdeListColors.hoverForeground
+                    : IdeListColors.foreground;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: ExcludeSemantics(
+                    child: Row(
+                      children: [
+                        // In the same room as the others', the label lined
+                        // up with theirs, though [iconSize] is larger.
+                        SizedBox.square(
+                          dimension: 15,
+                          child: OverflowBox(
+                            maxWidth: iconSize,
+                            maxHeight: iconSize,
+                            child: Icon(
+                              icon,
+                              size: iconSize,
+                              color: selected
+                                  ? themeColors.get(
+                                          'list.activeSelectionIconForeground',
+                                        ) ??
+                                        foreground
+                                  : AppColors.textMuted,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: foreground, fontSize: 12.5),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: foreground, fontSize: 12.5),
+                          ),
                         ),
-                      ),
-                      // As the side panel rail's badges, in its colors.
-                      if (badge > 0) IdeTitleBadge(badge),
-                    ],
+                        // As the side panel rail's badges, in its colors.
+                        if (badge > 0) IdeTitleBadge(badge),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -3243,7 +3281,7 @@ class _MoreRow extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        height: 24,
+        height: SidebarFontSize.scaled(24),
         padding: const EdgeInsets.only(left: 28),
         alignment: Alignment.centerLeft,
         child: Text(

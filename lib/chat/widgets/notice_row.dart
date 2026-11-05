@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
+import '../chat_display_settings.dart';
 import '../chat_models.dart';
 import 'markdown_view.dart';
 
@@ -32,7 +33,10 @@ class NoticeRow extends StatelessWidget {
               Flexible(
                 child: Text(
                   text,
-                  style: TextStyle(color: AppColors.textFaint, fontSize: 12),
+                  style: TextStyle(
+                    color: AppColors.textFaint,
+                    fontSize: ChatFontSize.scaled(12),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -50,7 +54,9 @@ class NoticeRow extends StatelessWidget {
           ),
           child: MarkdownView(
             text,
-            style: MarkdownView.baseStyle.copyWith(fontSize: 13),
+            style: MarkdownView.baseStyle.copyWith(
+              fontSize: ChatFontSize.scaled(13),
+            ),
           ),
         );
       case NoticeKind.retry ||
@@ -83,7 +89,7 @@ class NoticeRow extends StatelessWidget {
                     color: item.kind == NoticeKind.error
                         ? error
                         : AppColors.textMuted,
-                    fontSize: 12.5,
+                    fontSize: ChatFontSize.scaled(12.5),
                     height: 1.45,
                   ),
                 ),

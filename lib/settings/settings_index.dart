@@ -151,6 +151,11 @@ List<SettingsEntry> settingsEntries(AppLocalizations l10n) {
       l10n.appearanceSettingsSidebarTimes,
       l10n.appearanceSettingsSidebarTimesDescription,
     ),
+    entry(
+      appearance,
+      l10n.appearanceSettingsSidebarFontSize,
+      l10n.appearanceSettingsSidebarFontSizeDescription,
+    ),
     entry(appearance, l10n.appearanceSettingsLoaderSpeed),
     entry(
       appearance,

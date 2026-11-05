@@ -23,6 +23,7 @@ import '../../ide/terminal/terminal_colors.dart' show terminalColorTheme;
 import '../../ide/terminal/terminal_render_theme.dart'
     show terminalBaseFontSize, vscodeTerminalFontSize;
 import '../../ide/ide_menu.dart';
+import '../../sidebar/sidebar_font_size.dart';
 import '../../sidebar/sidebar_times.dart';
 import '../../l10n/l10n.dart';
 import '../../platform/event_log.dart' show appEvent;
@@ -239,6 +240,11 @@ class AppearanceSettingsPage extends StatelessWidget {
     _keep(SidebarTimes.settingKey, SidebarTimes.setting(on));
   }
 
+  void _selectSidebarFontSize(double size) {
+    SidebarFontSize.current.value = size;
+    _keep(SidebarFontSize.settingKey, SidebarFontSize.setting(size));
+  }
+
   static String elasticityName(
     BuildContext context,
     ChatMinimapElasticity level,
@@ -450,6 +456,7 @@ class AppearanceSettingsPage extends StatelessWidget {
         ChatMinimap.glass,
         ChatMinimap.elasticity,
         SidebarTimes.shown,
+        SidebarFontSize.current,
         WindowBlur.enabled,
         for (final role in PixelLoaderRole.values) ...[role.style, role.speed],
         CodeFont.families,
@@ -470,6 +477,11 @@ class AppearanceSettingsPage extends StatelessWidget {
         final chatFontSizeShown = chatFontSize == chatFontSize.roundToDouble()
             ? '${chatFontSize.round()}'
             : '$chatFontSize';
+        final sidebarFontSize = SidebarFontSize.current.value;
+        final sidebarFontSizeShown =
+            sidebarFontSize == sidebarFontSize.roundToDouble()
+            ? '${sidebarFontSize.round()}'
+            : '$sidebarFontSize';
         final styleShown = _styleName(context, UserMessageStyle.current.value);
         final editDetailShown = _editDetailName(
           context,
@@ -802,6 +814,21 @@ class AppearanceSettingsPage extends StatelessWidget {
                   description: l10n.appearanceSettingsSidebarTimesDescription,
                   value: SidebarTimes.shown.value,
                   onChanged: _selectSidebarTimes,
+                ),
+                SettingsRow(
+                  label: l10n.appearanceSettingsSidebarFontSize,
+                  description:
+                      l10n.appearanceSettingsSidebarFontSizeDescription,
+                  trailing: SettingsSlider(
+                    step: SidebarFontSize.stepOf(sidebarFontSize),
+                    count: SidebarFontSize.steps.length,
+                    label: sidebarFontSizeShown,
+                    semanticLabel: l10n.appearanceSettingsSidebarFontSizeLabel(
+                      sidebarFontSizeShown,
+                    ),
+                    onChanged: (step) =>
+                        _selectSidebarFontSize(SidebarFontSize.steps[step]),
+                  ),
                 ),
               ],
             ),

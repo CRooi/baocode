@@ -7878,6 +7878,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Each agent in the sidebar ends with when it last did something. Off: only its hover tells it.';
 
   @override
+  String get appearanceSettingsSidebarFontSize => 'Sidebar Font Size';
+
+  @override
+  String get appearanceSettingsSidebarFontSizeDescription =>
+      'The size of the projects and agents in the sidebar; their rows grow with it.';
+
+  @override
+  String appearanceSettingsSidebarFontSizeLabel(String size) {
+    return 'Sidebar font size: $size';
+  }
+
+  @override
   String get appearanceSettingsMinimapGlass => 'Glass Opacity';
 
   @override

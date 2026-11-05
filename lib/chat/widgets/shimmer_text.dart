@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../base/step_clock.dart';
 import '../../theme/app_theme.dart';
+import '../chat_display_settings.dart';
 import '../../theme/workbench_theme.dart' show themeColors;
 
 /// Muted label with a highlight sweeping across it, e.g. "Generating…".
@@ -89,7 +90,7 @@ class _ShimmerTextState extends State<ShimmerText> {
         child: Text(
           widget.ellipsis ? '${widget.text}…' : widget.text,
           // Opaque, for the mask: the shader gives the color.
-          style: const TextStyle(fontSize: 13)
+          style: TextStyle(fontSize: ChatFontSize.scaled(13))
               .merge(widget.style)
               .copyWith(color: Colors.white),
           strutStyle: widget.strutStyle,
