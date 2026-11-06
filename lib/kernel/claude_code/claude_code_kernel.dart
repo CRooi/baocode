@@ -2441,8 +2441,11 @@ class ClaudeCodeKernel
     }
   }
 
+  bool get _usesAccountUsage => parseModelRef(_model) == null;
+
   @override
-  List<RateLimitWindow> get accountLimits => _limits;
+  List<RateLimitWindow> get accountLimits =>
+      _usesAccountUsage ? _limits : const [];
 
   // The account's usage, asked for (as `/usage` does): no more than once in
   // [_usageFresh], and one request at a time for all sessions.
@@ -2479,7 +2482,7 @@ class ClaudeCodeKernel
 
   @override
   Future<void> refreshUsage() {
-    if (usageFresh) return Future.value();
+    if (!_usesAccountUsage || usageFresh) return Future.value();
     return _fetchingUsage ??= _fetchUsage().whenComplete(() {
       _fetchingUsage = null;
       _reportAll();
@@ -2496,7 +2499,10 @@ class ClaudeCodeKernel
     var state = LimitsState.unavailable;
     try {
       // A session's process, if one runs; else one of its own, briefly.
-      final control = _live.where((k) => k._running).firstOrNull?._control;
+      final control = _live
+          .where((k) => k._running && k._launchedProvider.isEmpty)
+          .firstOrNull
+          ?._control;
       final ask = control != null ? _askUsage : _probeUsage;
       state = await ask(control) ?? state;
     } on Exception {
@@ -2588,9 +2594,9 @@ class ClaudeCodeKernel
       nextSeq,
       UsageStats(
         costUsd: _cost,
-        limits: _limits,
-        limitsState: _limitsState,
-        limitsOffBy: _limitsOffBy,
+        limits: accountLimits,
+        limitsState: _usesAccountUsage ? _limitsState : LimitsState.idle,
+        limitsOffBy: _usesAccountUsage ? _limitsOffBy : null,
         cache: switch (_requests[_lastRequest]) {
           final last? when _cachingModels.contains(_lastModel) => PromptCache(
             last: last,

@@ -12,6 +12,7 @@ import '../../kernel/agent_kernel.dart';
 import '../../kernel/kernel_types.dart';
 import '../../keybindings/chat_keybindings.dart';
 import '../../l10n/l10n.dart';
+import '../../models/model_provider.dart' show formatTokens, parseModelRef;
 import '../../theme/app_theme.dart';
 import '../../theme/workbench_theme.dart' show WorkbenchColors, themeColors;
 import '../chat_display_settings.dart';
@@ -2160,6 +2161,7 @@ class ChatComposerState extends State<ChatComposer>
   /// The most used of the account's limits (its five-hour and weekly
   /// windows), 0 to 1; null when none is known.
   static double? _limitUsed(ChatSession session) {
+    if (!session.reportsAccountUsage) return null;
     double? most;
     for (final limit in session.stats?.limits ?? const <RateLimitWindow>[]) {
       final used = _used(limit);
@@ -2182,6 +2184,12 @@ class ChatComposerState extends State<ChatComposer>
   /// lately); [fallback] when neither is known, nor to be.
   String _ringHover(ChatSession session, String fallback) {
     final l10n = context.l10n;
+    if (parseModelRef(session.models?.selected.id) != null) {
+      final usage = session.context;
+      return usage == null
+          ? fallback
+          : '$fallback\n${formatTokens(usage.used)} / ${formatTokens(usage.window)} (${(usage.fraction * 100).round()}%)';
+    }
     final stats = session.stats;
     if (stats == null) return fallback;
     if (session.usageChecking ||

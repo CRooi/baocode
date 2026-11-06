@@ -2911,6 +2911,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get composerSettingContext => 'Context';
 
   @override
+  String get composerSettingContextLength => 'Context length';
+
+  @override
   String get composerSettingEffort => 'Effort';
 
   @override
@@ -9499,7 +9502,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get generalSettingsSimpleModelPickerDescription =>
-      'With Claude Code\'s CLI, the model picker lists the newest Opus, Sonnet, Fable and Haiku at 200k context, with the effort beside them; other models are under More models';
+      'With Claude Code\'s CLI, the model picker lists the newest Opus, Sonnet, Fable and Haiku, with effort and context length choices; other models are under More models';
 
   @override
   String get generalSettingsLiveTurnStats => 'Live Speed and Time';

@@ -9,6 +9,7 @@ import '../kernel/kernel_event.dart';
 import '../kernel/kernel_registry.dart';
 import '../kernel/kernel_types.dart';
 import '../kernel/transcript.dart';
+import '../models/model_provider.dart' show parseModelRef;
 import '../remote/remote_location.dart';
 import 'chat_feed.dart';
 import 'chat_models.dart';
@@ -486,12 +487,22 @@ class ChatSession extends ChangeNotifier implements ChatFeed {
     _ => null,
   };
 
+  /// Account quotas belong to built-in models, not a third-party upstream.
+  bool get reportsAccountUsage =>
+      _kernel is ReportsUsage && parseModelRef(models?.selected.id) == null;
+
   /// Cost and account limits; null when the kernel does not report them.
-  UsageStats? get stats => switch (_kernel) {
-    final ReportsUsage kernel =>
-      _transcript.stats ?? UsageStats(limits: kernel.accountLimits),
-    _ => null,
-  };
+  UsageStats? get stats {
+    if (_kernel case final ReportsUsage kernel) {
+      final stats =
+          _transcript.stats ?? UsageStats(limits: kernel.accountLimits);
+      if (reportsAccountUsage) return stats;
+      // The transcript can still hold the previous account's quotas after
+      // switching models. Keep request costs and caching, not those quotas.
+      return UsageStats(costUsd: stats.costUsd, cache: stats.cache);
+    }
+    return null;
+  }
 
   /// Whether the account's limits were asked for lately (see
   /// [ReportsUsage.usageFresh]); false when the kernel reports none.
@@ -509,6 +520,7 @@ class ChatSession extends ChangeNotifier implements ChatFeed {
 
   /// Asks for the account's limits now (see [ReportsUsage.refreshUsage]).
   void refreshUsage() {
+    if (!reportsAccountUsage) return;
     if (_kernel case final ReportsUsage kernel) {
       unawaited(kernel.refreshUsage());
     }

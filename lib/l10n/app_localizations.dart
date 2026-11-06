@@ -5060,6 +5060,12 @@ abstract class AppLocalizations {
   /// **'Context'**
   String get composerSettingContext;
 
+  /// No description provided for @composerSettingContextLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Context length'**
+  String get composerSettingContextLength;
+
   /// Heading of the model's reasoning effort choices.
   ///
   /// In en, this message translates to:
@@ -15456,7 +15462,7 @@ abstract class AppLocalizations {
   /// No description provided for @generalSettingsSimpleModelPickerDescription.
   ///
   /// In en, this message translates to:
-  /// **'With Claude Code\'s CLI, the model picker lists the newest Opus, Sonnet, Fable and Haiku at 200k context, with the effort beside them; other models are under More models'**
+  /// **'With Claude Code\'s CLI, the model picker lists the newest Opus, Sonnet, Fable and Haiku, with effort and context length choices; other models are under More models'**
   String get generalSettingsSimpleModelPickerDescription;
 
   /// No description provided for @generalSettingsLiveTurnStats.

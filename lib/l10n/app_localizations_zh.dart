@@ -2807,6 +2807,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get composerSettingContext => '上下文';
 
   @override
+  String get composerSettingContextLength => '上下文长度';
+
+  @override
   String get composerSettingEffort => '推理强度';
 
   @override
@@ -8975,7 +8978,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get generalSettingsSimpleModelPickerDescription =>
-      '使用 Claude Code CLI 时，模型选择器只列出最新的 Opus、Sonnet、Fable 和 Haiku，固定 200k 上下文，并直接显示推理强度设置；其他模型放在“更多模型”里';
+      '使用 Claude Code CLI 时，模型选择器只列出最新的 Opus、Sonnet、Fable 和 Haiku，可选择推理强度和上下文长度；其他模型放在“更多模型”里';
 
   @override
   String get generalSettingsLiveTurnStats => '运行时实时显示详细速率和时间';

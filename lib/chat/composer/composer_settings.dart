@@ -33,8 +33,8 @@ abstract final class ListContinuationSetting {
 }
 
 /// The model picker cut to Claude's newest of each family (Opus, Sonnet,
-/// Fable, Haiku) at 200k, with the effort beside them and the rest under
-/// More models; on Claude Code's CLI only.
+/// Fable, Haiku), with effort and context choices beside them and the rest
+/// under More models; on Claude Code's CLI only.
 abstract final class SimpleModelPickerSetting {
   static const settingKey = 'chat.composer.simpleModelPicker';
 

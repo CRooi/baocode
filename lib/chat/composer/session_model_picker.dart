@@ -157,13 +157,12 @@ class SessionModelPicker extends StatelessWidget {
   /// The families the simple picker lists, in its order.
   static const _families = ['opus', 'sonnet', 'fable', 'haiku'];
 
-  /// The context the simple picker keeps each model on.
-  static const _simpleContext = '200k';
-
   /// Ids of the simple picker's own rows, apart from the models'.
   static const _effortRow = '\u0000effort';
+  static const _contextRow = '\u0000context';
   static const _moreRow = '\u0000more';
   static const _effortPrefix = '\u0000effort:';
+  static const _contextPrefix = '\u0000context:';
 
   /// Of Claude Code's own models (the CLI's), the newest of each of
   /// [_families], in that order: the family's alias (`opus`) first, else
@@ -201,7 +200,7 @@ class SessionModelPicker extends StatelessWidget {
   }
 
   /// The simple picker (Settings → General), on Claude Code's CLI: the
-  /// newest of each family, the effort, and the rest under More models.
+  /// newest of each family, effort and context, and the rest under More models.
   /// Null where it does not apply, for the full one.
   Widget? _buildSimple(BuildContext context, KernelChoice model) {
     if (!SimpleModelPickerSetting.current() ||
@@ -216,10 +215,28 @@ class SessionModelPicker extends StatelessWidget {
       for (final option in model.options)
         if (!newest.contains(option)) option,
     ];
-    final effort = session
-        .modelSettings(model.selected.id)
+    final settings = session.modelSettings(model.selected.id);
+    final effort = settings
         .where((setting) => setting.kind == KernelChoiceKind.effort)
         .firstOrNull;
+    final contextSize = settings
+        .where((setting) => setting.kind == KernelChoiceKind.context)
+        .firstOrNull;
+    final contexts = [
+      for (final option in contextSize?.options ?? const <KernelOption>[])
+        KernelOption(
+          '$_contextPrefix${option.id}',
+          option.label,
+          option.icon,
+          '',
+        ),
+    ];
+    final contextRow = KernelOption(
+      _contextRow,
+      l10n.composerSettingContextLength,
+      Icons.notes_rounded,
+      '',
+    );
     final efforts = [
       for (final option in effort?.options ?? const <KernelOption>[])
         KernelOption(
@@ -242,29 +259,15 @@ class SessionModelPicker extends StatelessWidget {
       '',
     );
 
-    /// [option] picked, kept on the simple picker's context.
-    void pickModel(KernelOption option) => unawaited(
-      _switch(context, option, () {
-        model.onSelected(option);
-        final contextSize = session
-            .modelSettings(option.id)
-            .where((setting) => setting.kind == KernelChoiceKind.context)
-            .firstOrNull;
-        if (contextSize == null || contextSize.selected?.id == _simpleContext) {
-          return;
-        }
-        if (contextSize.options.where((o) => o.id == _simpleContext).firstOrNull
-            case final standard?) {
-          contextSize.onSelected(standard);
-        }
-      }),
-    );
+    void pickModel(KernelOption option) =>
+        unawaited(_switch(context, option, () => model.onSelected(option)));
 
     return ComposerPicker(
       key: pickerKey,
       options: [
         ...newest,
         if (efforts.isNotEmpty) effortRow,
+        if (contexts.isNotEmpty) contextRow,
         if (rest.isNotEmpty) moreRow,
       ],
       selected: model.selected,
@@ -273,11 +276,14 @@ class SessionModelPicker extends StatelessWidget {
       describes: false,
       submenuOf: (option) => switch (option.id) {
         _effortRow => efforts,
+        _contextRow => contexts,
         _moreRow => rest,
         _ => const [],
       },
       checks: (option) => option.id.startsWith(_effortPrefix)
           ? option.id == '$_effortPrefix${effort?.selected?.id}'
+          : option.id.startsWith(_contextPrefix)
+          ? option.id == '$_contextPrefix${contextSize?.selected?.id}'
           : option == model.selected,
       tooltip: tooltip,
       menuWidth: 260,
@@ -298,6 +304,14 @@ class SessionModelPicker extends StatelessWidget {
           final id = option.id.substring(_effortPrefix.length);
           final level = effort?.options.where((o) => o.id == id).firstOrNull;
           if (effort != null && level != null) effort.onSelected(level);
+          return;
+        }
+        if (option.id.startsWith(_contextPrefix)) {
+          final id = option.id.substring(_contextPrefix.length);
+          final size = contextSize?.options
+              .where((o) => o.id == id)
+              .firstOrNull;
+          if (contextSize != null && size != null) contextSize.onSelected(size);
           return;
         }
         pickModel(option);

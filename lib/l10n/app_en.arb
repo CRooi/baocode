@@ -1820,6 +1820,7 @@
   "@composerSettingContext": {
     "description": "Heading of the model's context window choices."
   },
+  "composerSettingContextLength": "Context length",
   "composerSettingEffort": "Effort",
   "@composerSettingEffort": {
     "description": "Heading of the model's reasoning effort choices."
@@ -6806,7 +6807,7 @@
   "generalSettingsContinueLists": "Continue Lists",
   "generalSettingsContinueListsDescription": "A new line in a bulleted or numbered list starts with the next item's bullet or number; a new line on an empty item ends the list",
   "generalSettingsSimpleModelPicker": "Simple Model Picker",
-  "generalSettingsSimpleModelPickerDescription": "With Claude Code's CLI, the model picker lists the newest Opus, Sonnet, Fable and Haiku at 200k context, with the effort beside them; other models are under More models",
+  "generalSettingsSimpleModelPickerDescription": "With Claude Code's CLI, the model picker lists the newest Opus, Sonnet, Fable and Haiku, with effort and context length choices; other models are under More models",
   "generalSettingsLiveTurnStats": "Live Speed and Time",
   "generalSettingsLiveTurnStatsDescription": "While the agent works, a line under the reply with how long the turn has taken, how fast the model writes and the tokens so far, changing as it goes. The figures under a finished turn always show.",
   "usageLimitScheduled": "Usage limit reached · continues automatically after it resets at {time}",
