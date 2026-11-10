@@ -405,6 +405,13 @@ class ChatSession extends ChangeNotifier implements ChatFeed {
     _ => false,
   };
 
+  /// Whether this kernel can reread its model catalog on demand.
+  bool get canRefreshModels => _kernel is RefreshesModels;
+
+  Future<void> refreshModels() async {
+    if (_kernel case final RefreshesModels kernel) await kernel.refreshModels();
+  }
+
   KernelChoice? get modes => switch (_kernel) {
     final SelectsMode kernel => _choice(kernel.mode),
     _ => null,
@@ -645,7 +652,7 @@ class ChatSession extends ChangeNotifier implements ChatFeed {
   bool get isUnprompted => _transcript.activeTurnUnprompted;
 
   /// Whether the composer may send now.
-  bool get canSend => !isStreaming || canQueue;
+  bool get canSend => !_takingBackPrompt && (!isStreaming || canQueue);
 
   InteractionRequest? get pendingInteraction => _transcript.pendingInteraction;
 
@@ -1191,7 +1198,55 @@ class ChatSession extends ChangeNotifier implements ChatFeed {
         if (editor != null) ..._editorNotes(editor()),
       ],
     );
+    _stoppedPrompt = null;
+    _lastSentPrompt = (id: turn.id, message: message);
     _kernel.send(turn);
+  }
+
+  ({String id, ComposerMessage message})? _lastSentPrompt;
+  String? _stoppedPrompt;
+  bool _takingBackPrompt = false;
+
+  /// A user-stopped message with no reply, thought or tool operation after
+  /// it. Late output makes it ineligible rather than silently discarding work.
+  bool get canTakeBackStoppedPrompt {
+    final sent = _lastSentPrompt;
+    if (_takingBackPrompt ||
+        sent == null ||
+        sent.id != _stoppedPrompt ||
+        isStreaming ||
+        queued.isNotEmpty ||
+        _kernel is! RewindsConversation ||
+        _transcript.length == 0) {
+      return false;
+    }
+    final last = _transcript.length - 1;
+    return _transcript.idAt(last) == sent.id &&
+        _transcript.itemAt(last) is UserMessageItem;
+  }
+
+  /// Removes the stopped prompt from the agent too, restoring the original
+  /// text and attachments only after the rewind succeeds.
+  Future<void> takeBackStoppedPrompt() async {
+    if (!canTakeBackStoppedPrompt) return;
+    final sent = _lastSentPrompt!;
+    final index = _transcript.length - 1;
+    _takingBackPrompt = true;
+    notifyListeners();
+    try {
+      final rewound = await (_kernel as RewindsConversation).rewind(
+        itemId: sent.id,
+        index: index,
+        turns: 1,
+        lastSeen: sent.id,
+      );
+      if (!rewound || _disposed) return;
+      _stoppedPrompt = null;
+      draft.restore(sent.message.text, sent.message.images);
+    } finally {
+      _takingBackPrompt = false;
+      if (!_disposed) notifyListeners();
+    }
   }
 
   static final _random = math.Random.secure();
@@ -1273,7 +1328,13 @@ class ChatSession extends ChangeNotifier implements ChatFeed {
     }
   }
 
-  void stop() => _kernel.cancel();
+  void stop() {
+    if (_transcript.activeTurn case final turn?
+        when turn == _lastSentPrompt?.id) {
+      _stoppedPrompt = turn;
+    }
+    _kernel.cancel();
+  }
 
   void answer(InteractionAnswer answer) {
     if (pendingInteraction case final request?) {

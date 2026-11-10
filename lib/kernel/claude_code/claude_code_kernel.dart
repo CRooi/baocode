@@ -96,6 +96,7 @@ class ClaudeCodeKernel
     implements
         AgentKernel,
         SelectsModel,
+        RefreshesModels,
         SelectsMode,
         StartsPlans,
         SelectsPermission,
@@ -2920,6 +2921,52 @@ class ClaudeCodeKernel
   }
 
   // --- Options ------------------------------------------------------------------------
+
+  Future<void>? _refreshingModels;
+
+  @override
+  Future<void> refreshModels() => _refreshingModels ??= _readModels()
+      .whenComplete(() => _refreshingModels = null);
+
+  Future<void> _readModels() async {
+    // No provider overrides or conversation: initialize the CLI only,
+    // leaving the current turn and its process untouched.
+    final transport = await _start(
+      ClaudeLaunch(cwd: _cwd, permissionMode: 'default', persist: false),
+    );
+    final control = ControlChannel(transport.write);
+    final subscription = transport.messages.listen((message) {
+      if (message['type'] == ClaudeExit.type) control.failAll('exited');
+      control.receive(message);
+    });
+    try {
+      final response = await control.request(
+        'initialize',
+        {},
+        const Duration(seconds: 30),
+      );
+      final raw = response['models'];
+      if (raw is! List) throw StateError('Claude Code returned no model list');
+      final listed = [
+        for (final model in raw)
+          if (model is Map) model.cast<Object?, Object?>(),
+      ];
+      final models = [
+        for (final model in listed)
+          _ModelInfo.from(model.cast<String, Object?>()),
+      ];
+      _keepModels(listed);
+      _lastCatalog = _lastCatalog.copyWith(models: models);
+      for (final kernel in _live) {
+        if (kernel._remoteHost != _remoteHost) continue;
+        kernel._catalog = kernel._catalog.copyWith(models: models);
+        kernel.emitInfoChanged();
+      }
+    } finally {
+      transport.close();
+      unawaited(subscription.cancel());
+    }
+  }
 
   void _applyInitialize(Map<String, Object?> response) {
     // Claude Code's own models are those it lists set up as the user has

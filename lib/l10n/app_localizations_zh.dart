@@ -2813,6 +2813,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get composerSettingEffort => '推理强度';
 
   @override
+  String get composerRefreshModels => '刷新 Claude Code 模型';
+
+  @override
+  String composerRefreshModelsFailed(String error) {
+    return '无法刷新 Claude Code 模型：$error';
+  }
+
+  @override
   String get composerMoreModels => '更多模型';
 
   @override

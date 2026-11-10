@@ -2917,6 +2917,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get composerSettingEffort => 'Effort';
 
   @override
+  String get composerRefreshModels => 'Refresh Claude Code models';
+
+  @override
+  String composerRefreshModelsFailed(String error) {
+    return 'Could not refresh Claude Code models: $error';
+  }
+
+  @override
   String get composerMoreModels => 'More models';
 
   @override

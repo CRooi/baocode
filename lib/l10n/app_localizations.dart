@@ -5072,6 +5072,18 @@ abstract class AppLocalizations {
   /// **'Effort'**
   String get composerSettingEffort;
 
+  /// No description provided for @composerRefreshModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh Claude Code models'**
+  String get composerRefreshModels;
+
+  /// No description provided for @composerRefreshModelsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh Claude Code models: {error}'**
+  String composerRefreshModelsFailed(String error);
+
   /// In the simple model picker: the entry that opens every other model.
   ///
   /// In en, this message translates to:

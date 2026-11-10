@@ -264,6 +264,9 @@ class SessionModelPicker extends StatelessWidget {
 
     return ComposerPicker(
       key: pickerKey,
+      onRefresh: session.canRefreshModels ? session.refreshModels : null,
+      refreshTooltip: l10n.composerRefreshModels,
+      refreshFailed: l10n.composerRefreshModelsFailed,
       options: [
         ...newest,
         if (efforts.isNotEmpty) effortRow,
@@ -332,6 +335,9 @@ class SessionModelPicker extends StatelessWidget {
     if (_buildSimple(context, model) case final simple?) return simple;
     return ComposerPicker(
       key: pickerKey,
+      onRefresh: session.canRefreshModels ? session.refreshModels : null,
+      refreshTooltip: l10n.composerRefreshModels,
+      refreshFailed: l10n.composerRefreshModelsFailed,
       options: model.options,
       selected: model.selected,
       label: _label(model.selected, model.options),

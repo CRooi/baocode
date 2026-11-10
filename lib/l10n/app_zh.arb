@@ -829,6 +829,8 @@
   "composerSettingContext": "上下文",
   "composerSettingContextLength": "上下文长度",
   "composerSettingEffort": "推理强度",
+  "composerRefreshModels": "刷新 Claude Code 模型",
+  "composerRefreshModelsFailed": "无法刷新 Claude Code 模型：{error}",
   "composerMoreModels": "更多模型",
   "composerNoResults": "无结果",
   "stripOpen": "打开 {name}",

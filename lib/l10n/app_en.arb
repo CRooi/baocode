@@ -1825,6 +1825,11 @@
   "@composerSettingEffort": {
     "description": "Heading of the model's reasoning effort choices."
   },
+  "composerRefreshModels": "Refresh Claude Code models",
+  "composerRefreshModelsFailed": "Could not refresh Claude Code models: {error}",
+  "@composerRefreshModelsFailed": {
+    "placeholders": {"error": {"type": "String"}}
+  },
   "composerMoreModels": "More models",
   "@composerMoreModels": {
     "description": "In the simple model picker: the entry that opens every other model."

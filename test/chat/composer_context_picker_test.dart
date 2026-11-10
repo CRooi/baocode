@@ -44,6 +44,7 @@ void main() {
     WidgetTester tester, {
     String model = 'opus',
     String contextSize = '400k',
+    FakeCli? refreshCli,
   }) async {
     tester.view.physicalSize = const Size(1200, 900);
     tester.view.devicePixelRatio = 1;
@@ -78,7 +79,8 @@ void main() {
       create: (context) => kernel = ClaudeCodeKernel(
         descriptor,
         context,
-        start: (_) async => cli,
+        start: (launch) async =>
+            !launch.persist && refreshCli != null ? refreshCli : cli,
         providers: providers,
         providerEnvironment: (_, _) async => {},
       ),
@@ -102,6 +104,55 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     return (session: session, kernel: kernel, cli: cli);
   }
+
+  testWidgets(
+    'model refresh updates the open picker without restarting its session',
+    (tester) async {
+      final fresh = FakeCli(
+        answers: {
+          'initialize': {
+            'models': [
+              {'value': 'opus', 'displayName': 'Opus Refreshed'},
+              {'value': 'sonnet', 'displayName': 'Sonnet Refreshed'},
+            ],
+          },
+        },
+      );
+      final (:session, :kernel, :cli) = await pump(tester, refreshCli: fresh);
+      session.send(const ComposerMessage(text: 'keep working'));
+      await tester.pump(const Duration(milliseconds: 100));
+      final wasStreaming = session.isStreaming;
+      await tester.tap(find.byType(SessionModelPicker));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byTooltip('Refresh Claude Code models'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+      expect(fresh.requests('initialize'), hasLength(1));
+      expect(fresh.users, isEmpty);
+      expect(fresh.closed, isTrue);
+      expect(cli.closed, isFalse);
+      expect(session.isStreaming, wasStreaming);
+      expect(
+        kernel.model.options.map((o) => o.label),
+        contains('Opus Refreshed'),
+      );
+      expect(find.text('Opus Refreshed'), findsWidgets);
+      expect(find.byTooltip('Refresh Claude Code models'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a failed model refresh keeps the existing catalog and closes its probe',
+    (tester) async {
+      final fresh = FakeCli(answers: {'initialize': {}});
+      final (:session, :kernel, :cli) = await pump(tester, refreshCli: fresh);
+      final before = kernel.model.options.map((o) => o.id).toList();
+      await expectLater(session.refreshModels(), throwsStateError);
+      expect(kernel.model.options.map((o) => o.id), before);
+      expect(fresh.closed, isTrue);
+      expect(cli.closed, isFalse);
+    },
+  );
 
   testWidgets('simple picker offers context below effort and preserves it '
       'when picking a model', (tester) async {

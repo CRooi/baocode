@@ -761,17 +761,22 @@ class ChatComposerState extends State<ChatComposer>
   void _takeDraftMessage() {
     final message = widget.draft?.takeMessage();
     if (message == null) return;
-    _pool = {
-      for (final image in message.images) ?image.number: image,
-      ..._pool,
-    };
+    var next = widget.session.lastImageNumber + 1;
+    if (_pool.isNotEmpty) {
+      next = math.max(next, _pool.keys.reduce(math.max) + 1);
+    }
+    final images = [
+      for (final image in message.images)
+        image.number == null ? image.withNumber(next++) : image,
+    ];
+    _pool = {for (final image in images) image.number!: image, ..._pool};
     var text = message.text;
     final referred = {
       for (final match in imageReferencePattern.allMatches(text))
         int.parse(match[1]!),
     };
     final unreferred = [
-      for (final image in message.images)
+      for (final image in images)
         if (image.number case final number? when !referred.contains(number))
           number,
     ];
@@ -878,7 +883,7 @@ class ChatComposerState extends State<ChatComposer>
   _ShownOfText _shownOfText() => (
     menu: (_trigger != null, _menuX, _menuKind, _matches, _highlighted),
     pool: _pool,
-    canSend: _canSend,
+    canSend: _canSend && (widget.onSubmit != null || widget.session.canSend),
     polishable: ComposerPolishSetting.current() && _hasWords(),
     edited: _editedFromGiven(),
   );
@@ -1447,6 +1452,14 @@ class ChatComposerState extends State<ChatComposer>
 
   /// Shows the message [step] from the one shown (-1: the one before).
   void _showPrompt(int step) {
+    if (step < 0 &&
+        _historyAt == null &&
+        _controller.text.isEmpty &&
+        _images.isEmpty &&
+        widget.session.canTakeBackStoppedPrompt) {
+      unawaited(widget.session.takeBackStoppedPrompt());
+      return;
+    }
     final prompts = _sentPrompts();
     final from = _historyAt ?? prompts.length;
     final at = from + step;
@@ -1597,6 +1610,7 @@ class ChatComposerState extends State<ChatComposer>
       return;
     }
     if (_showsStop) return;
+    if (widget.onSubmit == null && !widget.session.canSend) return;
     final message = _buildMessage();
     if (message.text.isEmpty && message.images.isEmpty) return;
     if (widget.onIntercept case final intercept? when intercept(message)) {
@@ -2257,7 +2271,8 @@ class ChatComposerState extends State<ChatComposer>
           const SizedBox(width: 2),
           _SendButton(
             streaming: _showsStop,
-            enabled: _canSend,
+            enabled:
+                _canSend && (widget.onSubmit != null || widget.session.canSend),
             onSend: _submit,
             onStop: () => stopTurn(this.context, session),
           ),

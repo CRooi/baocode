@@ -149,6 +149,11 @@ abstract interface class SelectsModel {
   KernelChoiceSource get model;
 }
 
+/// Reads the model catalog anew without restarting the conversation.
+abstract interface class RefreshesModels {
+  Future<void> refreshModels();
+}
+
 /// A model whose pick restarts the agent to go on with its conversation,
 /// e.g. one served by another provider: the user is asked first.
 abstract interface class ConfirmsModelSwitch {
