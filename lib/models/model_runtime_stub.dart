@@ -21,6 +21,17 @@ Future<List<GeneratedImage>> generateImages(
   String? session,
 }) async => throw const UpstreamException('Not available on the web.');
 
+Future<ModelAnswer> askModel(
+  String model, {
+  required String system,
+  required List<Map<String, Object?>> messages,
+  int maxTokens = 20000,
+  String? requestClass,
+  String? session,
+  void Function(String text)? onText,
+  Future<void>? cancel,
+}) async => throw const UpstreamException('Not available on the web.');
+
 Future<void> stopModelProxy() async {}
 
 final CodexService codexService = CodexUnavailable();

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:bao_agent/bao_agent.dart' show newUuid;
 import 'package:bao_remote/claude.dart' show ClaudeHistoryPage;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -26,11 +27,13 @@ import '../commit_attribution.dart';
 import '../extension_switches.dart';
 import '../kernel_event.dart';
 import '../kernel_types.dart';
+import '../output_meter.dart';
 import '../prompt_suggestions.dart';
 import '../transcript.dart';
 import '../queued_messages.dart';
 import 'claude_code_transport.dart';
 import 'claude_code_translator.dart';
+import 'claude_compaction.dart';
 import 'claude_elicitation.dart';
 import 'claude_goal.dart';
 import 'claude_numbers.dart';
@@ -553,8 +556,10 @@ class ClaudeCodeKernel
 
   Future<void> _launch() async {
     await _history;
-    // One process at a time on a session: the last one, if restarted.
+    // One process at a time on a session: the last one, if restarted; not
+    // while BaoCode compacts its conversation.
     await _stopped;
+    await _compactionDone;
     _setHealth(const KernelHealth(KernelHealthStatus.starting));
     try {
       // On a provider of the user's: its model as it is asked for, the
@@ -583,6 +588,9 @@ class ClaudeCodeKernel
         }
       }
       final workspace = _workspace;
+      _launchedCompacting = _compactsItself && !_cliCompactsNext;
+      _cliCompactsNext = false;
+      _compactDue = false;
       _launchedProvider = target.provider;
       _launchedModel = custom != null ? _model : null;
       _launchedWindow = _autocompact;
@@ -603,6 +611,7 @@ class ClaudeCodeKernel
               : null,
           thinking: custom != null && direct && effort == 'none' ? false : null,
           autocompact: _autocompact,
+          compactsItself: !_launchedCompacting,
           promptSuggestions: _launchedSuggestions,
           switches: _appliedSwitches,
           attribution: CommitAttribution.current(),
@@ -951,7 +960,8 @@ class ClaudeCodeKernel
   /// Starts a turn with [turn], or queues it behind the one running.
   void _submit(KernelTurn turn) {
     final busy = _turn != null;
-    final hold = busy && _holds;
+    // While BaoCode compacts, all wait here: sent once it is done.
+    final hold = busy && (_holds || _compacting != null);
     if (busy) {
       _queued.add(turn.id);
     } else {
@@ -1001,6 +1011,7 @@ class ClaudeCodeKernel
   /// Gives the CLI the messages held for it, as far as [_holds] lets it: one
   /// waiting there was taken up, or taken back.
   void _release() {
+    if (_compacting != null) return;
     while (_held.isNotEmpty && !_holds) {
       final MapEntry(key: id, value: ask) = _held.entries.first;
       _held.remove(id);
@@ -1128,6 +1139,9 @@ class ClaudeCodeKernel
   void cancel() {
     final turn = _turn;
     if (turn == null) return;
+    if (_compacting case final compacting? when !compacting.isCompleted) {
+      compacting.complete();
+    }
     _stoppedTurns.add(turn);
     _tell('interrupt');
     _endTurn(interrupted: true);
@@ -1820,6 +1834,8 @@ class ClaudeCodeKernel
 
   void _receive(Map<String, Object?> message) {
     if (_control?.receive(message) ?? false) return;
+    // Being stopped for BaoCode to compact: what it says is let go.
+    if (_compacting != null) return;
     _usage?.receive(message);
     switch (message['type']) {
       case ClaudeExit.type:
@@ -1899,7 +1915,10 @@ class ClaudeCodeKernel
         );
         emitInfoChanged();
       case 'assistant':
-        if (_countRequest(message)) _reportStats();
+        if (_countRequest(message)) {
+          _reportStats();
+          _checkCompaction(message);
+        }
         if (message['error'] == 'rate_limit') {
           _limitSaid(message['message']);
           _accountsLimited();
@@ -1907,6 +1926,16 @@ class ClaudeCodeKernel
         _translator.translate(message);
       case 'result':
         _result(message);
+        if (_compactDue) unawaited(_compact());
+      // The tools' results in: the CLI's next request is about to go, as
+      // it would compact before it.
+      case 'user'
+          when _compactDue &&
+              _turn != null &&
+              message['parent_tool_use_id'] == null &&
+              _hasToolResult(message):
+        _translator.translate(message);
+        unawaited(_compact(midTurn: true));
       case 'rate_limit_event':
         _rateLimits(message['rate_limit_info']);
       case 'command_lifecycle':
@@ -2706,13 +2735,256 @@ class ClaudeCodeKernel
                     },
                   ),
             ],
-            detail: _contextDetail = ContextDetail.parse(usage),
+            detail: _contextDetail = ContextDetail.parse(
+              // Its own compaction off, BaoCode's at the same point.
+              _launchedCompacting
+                  ? {
+                      ...usage,
+                      'isAutoCompactEnabled': true,
+                      'autoCompactThreshold': _compactAt,
+                    }
+                  : usage,
+            ),
           ),
         ),
       );
     } on Object {
       // Context usage is a nicety: an older CLI may not answer.
     }
+  }
+
+  // --- Compaction, with the model picked for it ---------------------------------
+
+  /// Whether a session started now leaves compacting to BaoCode: with a
+  /// model picked for it ([ModelProviders.compaction]), on this machine (a
+  /// remote one's conversation is kept on its host). Claude Code has no
+  /// way to be told the model to compact with: its own compaction is
+  /// turned off, and BaoCode stops it where it would compact, has the
+  /// model sum the conversation up, writes that in the session's file as
+  /// the CLI writes its own, and resumes it.
+  bool get _compactsItself =>
+      _remoteHost == null && _providers.compaction != null;
+
+  /// Whether the process running was started so ([_compactsItself]).
+  bool _launchedCompacting = false;
+
+  /// The CLI's own compaction left on at the next start: the model picked
+  /// for it failed.
+  bool _cliCompactsNext = false;
+
+  /// The last request filled the context past [_compactAt]: compacted at
+  /// the next pause between requests.
+  bool _compactDue = false;
+
+  /// What the conversation's last request filled, as counted.
+  int _lastUsed = 0;
+
+  /// The compaction under way: completed to give it up.
+  Completer<void>? _compacting;
+
+  /// Done as the compaction under way is: no process starts before.
+  Future<void> _compactionDone = Future.value();
+
+  /// Where Claude Code compacts: 33K short of the window.
+  int get _compactAt =>
+      math.max(_contextWindow - 33000, (_contextWindow * 0.8).round());
+
+  static const _continueNote =
+      '<system-reminder>\nThe conversation was compacted while you were '
+      'working. Go on with the task from where you left off.\n'
+      '</system-reminder>';
+
+  /// The request [message] answers, just counted: past [_compactAt], the
+  /// conversation is compacted when the CLI next pauses.
+  void _checkCompaction(Map<String, Object?> message) {
+    final usage = switch (message['message']) {
+      {'usage': final Map<Object?, Object?> usage} => usage,
+      _ => const <Object?, Object?>{},
+    };
+    _lastUsed =
+        (_requests[_lastRequest]?.total ?? 0) +
+        (claudeInt(usage['output_tokens']) ?? 0);
+    if (_launchedCompacting &&
+        _contextReported &&
+        _compacting == null &&
+        _lastUsed >= _compactAt) {
+      _compactDue = true;
+    }
+  }
+
+  static bool _hasToolResult(Map<String, Object?> message) => switch (message) {
+    {'message': {'content': final List<Object?> blocks}} => blocks.any(
+      (block) => block is Map && block['type'] == 'tool_result',
+    ),
+    _ => false,
+  };
+
+  /// Compacts the conversation with the model picked for it: the turn
+  /// under way stopped ([midTurn]) and gone on with after, the messages
+  /// waiting sent after. On failure the CLI compacts it instead, started
+  /// again with its own compaction on.
+  Future<void> _compact({bool midTurn = false}) async {
+    if (_compacting != null || _disposed) return;
+    final session = _sessionId;
+    final compaction = _providers.compaction;
+    final picked = _providers.resolve(_providers.compactionModel);
+    if (session == null || compaction == null || picked == null) {
+      // None picked any more: the CLI compacts, once started again.
+      _compactDue = false;
+      _cliCompactsNext = true;
+      release();
+      return;
+    }
+    // Not with a message about to be taken up (it may be in the file by
+    // now), nor with work in the background a stop would end, unless the
+    // context is all but full: at the next pause.
+    if (!midTurn && _queued.isNotEmpty) return;
+    if (_translator.workingInBackground && _lastUsed < _contextWindow - 15000) {
+      return;
+    }
+    _compactDue = false;
+    final cancelled = _compacting = Completer<void>();
+    final done = Completer<void>();
+    _compactionDone = done.future;
+    final before = _lastUsed;
+    // The turn under way ends here, as done so far; the CLI is stopped,
+    // all it says meanwhile let go (see _receive).
+    if (_turn != null) _endTurn(interrupted: false);
+    final waiting = [..._queued];
+    _queued.clear();
+    _held.clear();
+    // At once, for a message sent meanwhile to wait for it.
+    final id = 'compaction:${DateTime.now().microsecondsSinceEpoch}';
+    _beginTurn(id, unprompted: true);
+    _translator.compacting();
+    try {
+      await _control?.request(
+        'interrupt',
+        const {},
+        const Duration(seconds: 5),
+      );
+    } on Object {
+      // Stopped all the same.
+    }
+    _teardown();
+    _translator.endTasks();
+    _setHealth(KernelHealth.idle);
+    final meter = OutputMeter()..begin();
+    void streamed(String text) {
+      meter
+        ..startBlock()
+        ..streamed(text);
+      emit(OutputReported(nextSeq, meter.output));
+    }
+
+    final started = DateTime.now();
+    final model = picked.$2.displayName;
+    String? failure;
+    try {
+      await _stopped;
+      final source = cancelled.isCompleted
+          ? null
+          : await readCompactionSource(session);
+      if (cancelled.isCompleted) throw const ModelCallCancelled();
+      if (source == null) throw StateError('The conversation was not found.');
+      // Room for the answer, and the prompt around the conversation.
+      var budget = math.max(picked.$2.initialContext - 24000, 8000);
+      ModelAnswer? answer;
+      for (var attempt = 0; answer == null; attempt++) {
+        try {
+          answer = await askModel(
+            compaction.model,
+            system: compactionSystem,
+            messages: compactionMessages(
+              compactionTranscript(source.messages, budget: budget),
+            ),
+            requestClass: 'compaction',
+            session: session,
+            onText: streamed,
+            cancel: cancelled.future,
+          );
+        } on UpstreamException {
+          // Too long for it, likely: once more with half.
+          if (attempt > 0 || cancelled.isCompleted) rethrow;
+          budget ~/= 2;
+          meter.begin();
+        }
+      }
+      if (cancelled.isCompleted) throw const ModelCallCancelled();
+      final took = DateTime.now().difference(started);
+      final after = OutputMeter.estimateTokens(answer.text).round();
+      await writeCompaction(
+        source.path,
+        summary: answer.text,
+        auto: true,
+        preTokens: before,
+        postTokens: after,
+        duration: took,
+      );
+      _lastUsed = after;
+      emit(
+        ItemUpserted(
+          nextSeq,
+          id,
+          NoticeItem(
+            NoticeKind.compaction,
+            'Conversation compacted automatically',
+            compaction: Compaction(
+              auto: true,
+              before: before,
+              after: after,
+              model: model,
+              duration: took,
+              tokens: answer.outputTokens ?? meter.output.tokens,
+            ),
+          ),
+        ),
+      );
+      emit(
+        UsageReported(
+          nextSeq,
+          ContextUsage(window: _contextWindow, used: after),
+        ),
+      );
+    } on ModelCallCancelled {
+      // Given up on: the conversation as it was.
+    } on Object catch (error) {
+      if (!cancelled.isCompleted) failure = '$error';
+    } finally {
+      _compacting = null;
+      done.complete();
+    }
+    if (_disposed) return;
+    final stopped = cancelled.isCompleted;
+    if (!stopped) {
+      _turnStarted = null;
+      _endTurn(interrupted: false);
+    }
+    if (failure != null) {
+      _cliCompactsNext = true;
+      emit(
+        ItemUpserted(
+          nextSeq,
+          'error:$id',
+          NoticeItem(NoticeKind.error, '$model: $failure'),
+        ),
+      );
+    }
+    // Gone on with: the turn stopped for it, then the messages waiting.
+    final next = [...waiting, ..._queued];
+    _queued.clear();
+    _held.clear();
+    if (midTurn && !stopped) {
+      final turn = KernelTurn(id: newUuid(), text: _continueNote);
+      _sent[turn.id] = turn;
+      _beginTurn(turn.id, unprompted: true);
+      _write(turn, ask: _inAsk);
+    }
+    for (final id in next) {
+      if (_sent[id] case final turn?) _submit(turn);
+    }
+    // Started again, for the context to be counted anew.
+    if (_turn == null) prepare();
   }
 
   void _exited(int code, String stderr, {String? executable}) {
@@ -3145,17 +3417,16 @@ class ClaudeCodeKernel
       _launchedModel = null;
       release();
     }
+    // A model picked for compactions, or none any more: started again
+    // (once idle) to compact as now set.
+    if (_transport != null && _launchedCompacting != _compactsItself) {
+      release();
+    }
   }
 
-  /// The name of the model the conversation is compacted with: the one
-  /// picked for compactions ([ModelProviders.compaction]) on an upstream's
-  /// model, which the proxy sends them to; else the session's own.
+  /// The name of the model the CLI compacts the conversation with: the
+  /// session's own (BaoCode's compactions name theirs, see [_compact]).
   String? get _compactionModelName {
-    if (parseModelRef(_model) != null && _providers.compaction != null) {
-      if (_providers.resolve(_providers.compactionModel) case (_, final info)) {
-        return info.displayName;
-      }
-    }
     final selected = model.selected;
     return model.options.where((o) => o.id == selected).firstOrNull?.label;
   }

@@ -35,6 +35,47 @@ Future<List<GeneratedImage>> generateImages(
   String? session,
 }) => platform.generateImages(provider, model, request, session: session);
 
+/// Asks [model] (a provider's, [modelRef], as [ModelProviders.compaction]
+/// names it) [messages] after [system], through the local proxy, its
+/// answer streamed: [onText] has each piece of its text as it comes. The call is
+/// kept (Settings → Usage) as a [requestClass] one, under the conversation
+/// [session]. Completing [cancel] gives it up, and it then throws
+/// [ModelCallCancelled]; it throws [UpstreamException] for no answer.
+Future<ModelAnswer> askModel(
+  String model, {
+  required String system,
+  required List<Map<String, Object?>> messages,
+  int maxTokens = 20000,
+  String? requestClass,
+  String? session,
+  void Function(String text)? onText,
+  Future<void>? cancel,
+}) => platform.askModel(
+  model,
+  system: system,
+  messages: messages,
+  maxTokens: maxTokens,
+  requestClass: requestClass,
+  session: session,
+  onText: onText,
+  cancel: cancel,
+);
+
+/// What [askModel] was answered.
+class ModelAnswer {
+  const ModelAnswer(this.text, {this.inputTokens, this.outputTokens});
+
+  final String text;
+
+  /// As the upstream counted them, if it did.
+  final int? inputTokens;
+  final int? outputTokens;
+}
+
+class ModelCallCancelled implements Exception {
+  const ModelCallCancelled();
+}
+
 /// The ChatGPT (Codex) providers' accounts: signing in, their quota.
 CodexService get codexService => platform.codexService;
 

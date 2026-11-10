@@ -54,6 +54,7 @@ class ClaudeLaunch {
     this.effort,
     this.thinking,
     this.autocompact,
+    this.compactsItself = true,
     this.autoModeDuringPlan,
     this.attribution = CommitAttribution.agent,
     this.persist = true,
@@ -141,6 +142,13 @@ class ClaudeLaunch {
   /// but the session goes on with the one it started with.
   final int? autocompact;
 
+  /// Whether it compacts the conversation itself when full; else BaoCode
+  /// does, with a model of the user's picking.
+  final bool compactsItself;
+
+  /// What turns its own compaction off ([compactsItself]).
+  static const noAutocompact = {'DISABLE_AUTO_COMPACT': '1'};
+
   /// The most `--autocompact` takes (a decimal million): a window larger
   /// still (a model of 1,048,576 tokens, say) is passed as this.
   static const maxAutocompact = 1000000;
@@ -194,6 +202,7 @@ class ClaudeLaunch {
     effort: effort,
     thinking: thinking,
     autocompact: autocompact,
+    compactsItself: compactsItself,
     autoModeDuringPlan: autoModeDuringPlan,
     attribution: attribution,
     persist: persist,
@@ -238,6 +247,7 @@ class ClaudeLaunch {
     'env': {
       ...unsetEnvironment,
       ...?env,
+      if (!compactsItself) ...noAutocompact,
       if (directories.isNotEmpty && folderInstructions)
         ...additionalDirectoriesEnvironment,
     },

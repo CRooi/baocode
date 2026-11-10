@@ -9,7 +9,6 @@ import 'package:flutter/foundation.dart';
 
 import '../../usage/usage_capture.dart';
 import '../../usage/usage_ledger.dart';
-import '../../usage/usage_record.dart' show UsageClass;
 import '../../usage/usage_trace.dart';
 import '../codex/codex_accounts_io.dart';
 import '../codex/codex_api.dart';
@@ -60,13 +59,8 @@ class ModelProxy {
     this._findProxy,
     this._codex,
     this._usage,
-    this._compaction,
     @visibleForTesting String? token,
   }) : token = token ?? _newToken();
-
-  /// The model a compaction is sent to instead of the session's (as
-  /// [ModelProviders.compaction] gives it); null for the session's own.
-  final ({String model, String? effort})? Function()? _compaction;
 
   final ModelProvider? Function(String id) _provider;
 
@@ -248,17 +242,6 @@ class ModelProxy {
           'No such endpoint: ${request.uri.path}',
         );
       }
-      // A compaction, to the model picked for them.
-      final compaction = countTokens ? null : _compaction?.call();
-      final compacting =
-          compaction != null &&
-          analyzeRequest(
-                body,
-                request.headers.value,
-                detailed: false,
-              ).requestClass ==
-              UsageClass.compaction;
-      if (compacting) body['model'] = compaction.model;
       // A model of another upstream (a subagent's, `@<id>/<model>`): to
       // that one, by its own name.
       var wanted = providerId;
@@ -278,11 +261,6 @@ class ModelProxy {
       final provider = found.speakingFor(
         parseSuffix('${body['model'] ?? ''}').modelName.trim(),
       );
-      // To Anthropic's API, its effort as that asks for it, not the
-      // session's model's.
-      if (compacting && provider.protocol == ProviderProtocol.anthropic) {
-        _withEffort(body, compaction.effort);
-      }
       if (!countTokens) {
         ledger = _usage?.call();
         if (ledger != null && ledger.enabled) {
@@ -353,27 +331,6 @@ class ModelProxy {
         ledger?.record(call, trace: trace);
       }
       if (meter != null) ledger?.end(meter);
-    }
-  }
-
-  /// [body] (a Messages API request) asked at [effort]: `none` without
-  /// thinking, another level as its `output_config.effort`; null as it is.
-  static void _withEffort(Map<String, Object?> body, String? effort) {
-    if (effort == null) return;
-    final config = {
-      if (body['output_config'] case final Map<Object?, Object?> config)
-        for (final MapEntry(:key, :value) in config.entries) '$key': value,
-    };
-    if (effort == 'none') {
-      body.remove('thinking');
-      config.remove('effort');
-    } else {
-      config['effort'] = effort;
-    }
-    if (config.isEmpty) {
-      body.remove('output_config');
-    } else {
-      body['output_config'] = config;
     }
   }
 

@@ -71,6 +71,10 @@ class ClaudeTranslator {
   KernelActivity _waiting() =>
       KernelActivity(KernelActivityKind.waiting, DateTime.now());
 
+  /// BaoCode compacts the conversation itself, the CLI stopped meanwhile.
+  void compacting() =>
+      _report(KernelActivity(KernelActivityKind.compacting, DateTime.now()));
+
   /// Replaying a kept session: nothing is pending or running any more.
   bool replaying = false;
 

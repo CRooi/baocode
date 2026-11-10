@@ -16,5 +16,8 @@ export 'src/engine/engine.dart'
     show AgentEngine, BuiltInCommand, builtInCommands, engineVersion;
 export 'src/engine/isolate.dart' show AgentIsolate;
 export 'src/engine/session.dart' show EngineOptions, MissingCredentials;
-export 'src/engine/session_store.dart' show agentVersion;
+export 'src/engine/session_store.dart'
+    show SessionStore, agentVersion, toApiMessages;
+export 'src/prompts/task_prompts.dart' show compactPrompt, compactedSummary;
 export 'src/util/cancel.dart' show CancelToken, Cancelled;
+export 'src/util/ids.dart' show newUuid;
