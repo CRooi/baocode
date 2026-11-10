@@ -6937,6 +6937,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get modelsAuxiliaryBuiltin => 'Claude Code Haiku（本机配置）';
 
   @override
+  String get modelsCompaction => '压缩模型';
+
+  @override
+  String get modelsCompactionDescription => '压缩对话上下文时使用的模型，对使用上游模型的会话生效。';
+
+  @override
+  String get modelsCompactionSession => '跟随会话模型';
+
+  @override
   String get settingsSectionUpdates => '更新';
 
   @override

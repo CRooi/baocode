@@ -7383,6 +7383,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Claude Code Haiku (this machine\'s setup)';
 
   @override
+  String get modelsCompaction => 'Compaction model';
+
+  @override
+  String get modelsCompactionDescription =>
+      'The model that summarizes a conversation when its context is compacted, for sessions on an upstream\'s model.';
+
+  @override
+  String get modelsCompactionSession => 'Session model';
+
+  @override
   String get settingsSectionUpdates => 'Updates';
 
   @override

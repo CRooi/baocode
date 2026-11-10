@@ -1087,6 +1087,33 @@ void main() {
       expect(env['CLAUDE_CODE_SUBAGENT_MODEL_FORCE'], '');
     });
 
+    test('a compaction model takes a direct upstream through the proxy, '
+        'its requests saying what they are for', () {
+      const direct = ModelProvider(
+        id: 'a',
+        name: 'A',
+        baseUrl: 'https://api.anthropic.com',
+      );
+      final plain = launchEnvironment(
+        provider: direct,
+        model: 'claude-sonnet-4-5',
+        key: 'sk-ant',
+      );
+      expect(plain['ANTHROPIC_BASE_URL'], 'https://api.anthropic.com');
+      expect(plain.containsKey('CLAUDE_CODE_GATEWAY_HINT_HEADERS'), isFalse);
+      final env = launchEnvironment(
+        provider: direct,
+        model: 'claude-sonnet-4-5',
+        key: 'sk-ant',
+        proxy: (baseUrl: 'http://127.0.0.1:5000/p/a', token: 'tok'),
+        compaction: true,
+      );
+      expect(env['ANTHROPIC_BASE_URL'], 'http://127.0.0.1:5000/p/a');
+      expect(env['ANTHROPIC_AUTH_TOKEN'], 'tok');
+      expect(env['ANTHROPIC_API_KEY'], '');
+      expect(env['CLAUDE_CODE_GATEWAY_HINT_HEADERS'], '1');
+    });
+
     test('an OpenAI upstream goes through the proxy, never through the '
         'user\'s HTTP proxy', () {
       final env = launchEnvironment(

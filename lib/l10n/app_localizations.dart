@@ -11979,6 +11979,24 @@ abstract class AppLocalizations {
   /// **'Claude Code Haiku (this machine\'s setup)'**
   String get modelsAuxiliaryBuiltin;
 
+  /// No description provided for @modelsCompaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Compaction model'**
+  String get modelsCompaction;
+
+  /// No description provided for @modelsCompactionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The model that summarizes a conversation when its context is compacted, for sessions on an upstream\'s model.'**
+  String get modelsCompactionDescription;
+
+  /// No description provided for @modelsCompactionSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Session model'**
+  String get modelsCompactionSession;
+
   /// No description provided for @settingsSectionUpdates.
   ///
   /// In en, this message translates to:

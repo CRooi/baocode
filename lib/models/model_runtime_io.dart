@@ -33,6 +33,7 @@ final ModelProxy _proxy = ModelProxy(
   findProxy: (url) => NetworkProxy.instance.findProxy(url),
   codex: _codex,
   usage: () => UsageLedger.current,
+  compaction: () => ModelProviders.current.compaction,
 );
 
 /// The app's image generation, over [ModelProviders.current].
@@ -171,7 +172,8 @@ Future<Map<String, String>> providerLaunchEnvironment(
   // Its calls kept (Settings → Usage): through the proxy, which keeps
   // them, whatever it speaks.
   final recordUsage = UsageLedger.current.enabled;
-  final proxy = provider.throughProxy || recordUsage
+  final compaction = ModelProviders.current.compaction != null;
+  final proxy = provider.throughProxy || recordUsage || compaction
       ? await _proxy.endpoint(provider.id)
       : null;
   // What the session's own NO_PROXY keeps out of the user's proxy, beside
@@ -184,6 +186,7 @@ Future<Map<String, String>> providerLaunchEnvironment(
     proxy: proxy,
     noProxy: route.direct ? null : route.noProxy,
     recordUsage: recordUsage,
+    compaction: compaction,
   );
 }
 

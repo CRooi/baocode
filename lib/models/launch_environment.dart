@@ -24,13 +24,14 @@ Map<String, String> launchEnvironment({
   ProxyEndpoint? proxy,
   String? noProxy,
   bool recordUsage = false,
+  bool compaction = false,
 }) {
   final String baseUrl;
   final String token;
   var apiKey = '';
-  // Its calls kept: through the proxy, which keeps them, whatever it
-  // speaks.
-  final proxied = provider.throughProxy || recordUsage;
+  // Its calls kept, or its compactions sent to a model of their own:
+  // through the proxy, which does so, whatever it speaks.
+  final proxied = provider.throughProxy || recordUsage || compaction;
   if (proxied) {
     if (proxy == null) {
       throw StateError('${provider.name} needs the model proxy');
@@ -74,8 +75,8 @@ Map<String, String> launchEnvironment({
     if (provider.disableNonessentialTraffic)
       ClaudeModelVariables.nonessentialTraffic: '1',
     // What each request is for (a subagent's, a compaction), for the
-    // calls kept: the proxy does not pass it on.
-    if (recordUsage) UsageHeaders.gatewayHintsVariable: '1',
+    // calls kept and the compaction model: the proxy does not pass it on.
+    if (recordUsage || compaction) UsageHeaders.gatewayHintsVariable: '1',
     // The proxy is on this machine: never through the user's HTTP proxy.
     if (proxied)
       'NO_PROXY': [

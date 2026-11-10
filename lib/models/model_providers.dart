@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../channel/channel_setup.dart' show ChannelSetup;
 import '../kernel/claude_code/claude_core_setting.dart';
 import '../settings/user_settings.dart';
+import 'launch_environment.dart' show requestedModel;
 import 'model_provider.dart';
 import 'secret_store.dart';
 
@@ -67,6 +68,8 @@ class ModelProviders extends ChangeNotifier {
   static const auxiliaryKey = 'models.auxiliary';
   static const actionsKey = 'models.actions';
   static const imageKey = 'models.image';
+  static const compactionKey = 'models.compaction';
+  static const compactionEffortKey = 'models.compactionEffort';
 
   /// [actionsModel]'s value for the auxiliary model, whatever it is.
   static const followAuxiliary = 'auxiliary';
@@ -209,6 +212,48 @@ class ModelProviders extends ChangeNotifier {
 
   Future<void> setImageModel(String? model) => _write(imageKey, model);
 
+  /// The model a conversation on an upstream is compacted with (a
+  /// [modelRef]); null for the session's own.
+  String? get compactionModel => switch (_read(compactionKey)) {
+    final String model when parseModelRef(model) != null => model,
+    _ => null,
+  };
+
+  /// The effort [compactionModel] is asked with; null for its own default.
+  String? get compactionEffort => switch (_read(compactionEffortKey)) {
+    final String effort when effort.isNotEmpty => effort,
+    _ => null,
+  };
+
+  /// Picks [model] for compactions (null: the session's own), at [effort].
+  Future<void> setCompactionModel(String? model, {String? effort}) async {
+    await _write(compactionKey, model);
+    await _write(compactionEffortKey, model == null ? null : effort);
+  }
+
+  /// Where a compaction goes: [compactionModel], while its upstream is on
+  /// and has it, as the proxy is asked for it ([requestedModel]: its
+  /// effort in its name, where the proxy speaks for it), and its effort;
+  /// null for the session's own model.
+  ({String model, String? effort})? get compaction {
+    final (provider, info) = switch (resolve(compactionModel)) {
+      (final provider, final info) when provider.enabled => (provider, info),
+      _ => (null, null),
+    };
+    if (provider == null || info == null) return null;
+    final effort = switch (compactionEffort) {
+      final picked? when info.effortLevels.contains(picked) => picked,
+      _ => info.initialEffort,
+    };
+    return (
+      model: modelRef(
+        provider.id,
+        requestedModel(provider, info, effort: effort),
+      ),
+      effort: effort,
+    );
+  }
+
   /// The image models the agents make pictures with: those turned on of the
   /// upstreams turned on, [imageModel] first, the others in order.
   List<({ModelProvider provider, ProviderModel model})> get imageModels {
@@ -291,6 +336,9 @@ class ModelProviders extends ChangeNotifier {
     }
     if (parseModelRef(imageModel)?.provider == id) {
       await setImageModel(null);
+    }
+    if (parseModelRef(compactionModel)?.provider == id) {
+      await setCompactionModel(null);
     }
     _errors.remove(id);
     try {

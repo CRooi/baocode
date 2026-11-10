@@ -24,6 +24,7 @@ import '../../models/model_icons.dart';
 import '../../models/model_provider.dart';
 import '../../models/model_providers.dart';
 import '../../models/model_runtime.dart';
+import '../../models/provider_model_picker.dart';
 import '../../models/upstream.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/codicons.dart';
@@ -259,6 +260,24 @@ class _ModelsSettingsPageState extends State<ModelsSettingsPage> {
     );
   }
 
+  /// The compaction model: what a conversation on an upstream is summed
+  /// up with when it is compacted.
+  Widget _compactionRow(BuildContext context) {
+    final l10n = context.l10n;
+    return SettingsRow(
+      label: l10n.modelsCompaction,
+      description: l10n.modelsCompactionDescription,
+      trailing: ProviderModelPicker(
+        providers: _providers,
+        model: _providers.compactionModel,
+        effort: _providers.compactionEffort,
+        noneLabel: l10n.modelsCompactionSession,
+        onPicked: (model, effort) =>
+            unawaited(_providers.setCompactionModel(model, effort: effort)),
+      ),
+    );
+  }
+
   /// The image model: what the agents make pictures with.
   Widget _imageRow(BuildContext context) {
     final l10n = context.l10n;
@@ -374,6 +393,7 @@ class _ModelsSettingsPageState extends State<ModelsSettingsPage> {
               ),
             ),
             _auxiliaryRow(context),
+            _compactionRow(context),
             _imageRow(context),
           ],
         ),

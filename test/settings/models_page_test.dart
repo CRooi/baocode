@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:baocode/icons/brand_logos.dart';
 import 'package:baocode/icons/project_icon.dart';
+import 'package:baocode/chat/composer/composer_picker.dart';
 import 'package:baocode/ide/ide_hover.dart';
 import 'package:baocode/ide/ide_button.dart';
 import 'package:baocode/ide/ide_back_button.dart';
@@ -430,6 +431,58 @@ void main() {
     await tester.pumpAndSettle();
     expect(providers.auxiliaryModel, '@gw/flash');
     expect(find.text('Gateway · Flash'), findsOneWidget);
+  });
+
+  testWidgets('a compaction model is picked in the model picker, its '
+      'effort beside it', (tester) async {
+    await providers.save(
+      const ModelProvider(
+        id: 'gw',
+        name: 'Gateway',
+        baseUrl: 'https://gw.example.com',
+        protocol: ProviderProtocol.openaiChat,
+        models: [
+          ProviderModel(
+            id: 'flash',
+            label: 'Flash',
+            efforts: ['low', 'medium'],
+          ),
+        ],
+      ),
+    );
+    await pump(tester);
+    expect(find.text('Compaction model'), findsOneWidget);
+    expect(providers.compaction, isNull);
+    await tester.tap(find.text('Session model'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Flash').last);
+    await tester.pumpAndSettle();
+    expect(providers.compactionModel, '@gw/flash');
+    expect(providers.compaction, (
+      model: '@gw/flash(medium)',
+      effort: 'medium',
+    ));
+    expect(find.text('Flash Medium', findRichText: true), findsOneWidget);
+
+    final picker = tester.widget<ComposerPicker>(find.byType(ComposerPicker));
+    final flash = picker.options.singleWhere((o) => o.id == '@gw/flash');
+    final effort = picker.settingsOf!(flash).single;
+    expect(effort.selected?.id, 'medium');
+    effort.onSelected(effort.options.singleWhere((o) => o.id == 'low'));
+    await tester.pumpAndSettle();
+    expect(providers.compaction, (model: '@gw/flash(low)', effort: 'low'));
+    expect(find.text('Flash Low', findRichText: true), findsOneWidget);
+
+    final again = tester.widget<ComposerPicker>(find.byType(ComposerPicker));
+    again.onSelected(again.options.first);
+    await tester.pumpAndSettle();
+    expect(providers.compactionModel, isNull);
+    expect(providers.compactionEffort, isNull);
+    expect(find.text('Session model'), findsOneWidget);
+
+    await providers.setCompactionModel('@gw/flash', effort: 'low');
+    await providers.remove('gw');
+    expect(providers.compactionModel, isNull);
   });
 
   testWidgets('a model is added by hand, and edited', (tester) async {
