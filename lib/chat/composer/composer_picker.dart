@@ -54,6 +54,7 @@ class ComposerPicker extends StatefulWidget {
     this.searchPlaceholder,
     this.footers = const [],
     this.onRefresh,
+    this.refreshGroup,
     this.refreshTooltip,
     this.refreshFailed,
   }) : assert(settingsOf == null || submenuOf == null);
@@ -116,8 +117,10 @@ class ComposerPicker extends StatefulWidget {
   /// Actions under the options (Create Branch…, New Worktree…).
   final List<ComposerPickerFooter> footers;
 
-  /// Rereads the catalog from the menu's top-right action, if supported.
+  /// Rereads the catalog, from beside the chevron of [refreshGroup]'s
+  /// heading while it is pointed at, if supported.
   final Future<void> Function()? onRefresh;
+  final String? refreshGroup;
   final String? refreshTooltip;
   final String Function(String error)? refreshFailed;
 
@@ -1067,7 +1070,15 @@ class ComposerPickerState extends State<ComposerPicker> {
     matches: _matchesIn(group.label),
     collapsed: _collapses ? _collapsed.contains(group.id) : null,
     onTap: _collapses ? () => _toggleGroup(group, stuck: stuck) : null,
+    trailing: widget.onRefresh != null && group.id == widget.refreshGroup
+        ? _refreshButton
+        : null,
   );
+
+  /// Whether [refreshGroup] has a heading, whatever else is listed.
+  bool get _refreshHeading =>
+      widget.onRefresh != null &&
+      widget.options.any((option) => option.group?.id == widget.refreshGroup);
 
   bool _refreshing = false;
 
@@ -1089,37 +1100,38 @@ class ComposerPickerState extends State<ComposerPicker> {
     }
   }
 
-  Widget _refreshButton() => IdeHover(
-    message: widget.refreshTooltip ?? context.l10n.commonRefresh,
-    child: HoverBuilder(
-      cursor: _refreshing ? SystemMouseCursors.basic : SystemMouseCursors.click,
-      builder: (context, hovered) {
-        final icon = Icon(
-          Codicons.refresh,
-          size: 14,
-          color: AppColors.textMuted,
-        );
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _refreshing ? null : () => unawaited(_refresh()),
-          child: Container(
-            width: 26,
-            height: 26,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: hovered ? themeColors['toolbar.hoverBackground'] : null,
-              borderRadius: BorderRadius.circular(5),
+  /// Beside the chevron of [ComposerPicker.refreshGroup]'s heading: shown
+  /// while it is pointed at ([headingHovered]), or refreshing.
+  Widget _refreshButton(bool headingHovered, Color color) {
+    if (!headingHovered && !_refreshing) return const SizedBox.shrink();
+    return IdeHover(
+      message: widget.refreshTooltip ?? context.l10n.commonRefresh,
+      child: HoverBuilder(
+        cursor: _refreshing
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        builder: (context, hovered) {
+          final icon = Icon(
+            Codicons.refresh,
+            size: 12,
+            color: hovered ? AppColors.textMuted : color,
+          );
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _refreshing ? null : () => unawaited(_refresh()),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: _refreshing ? IdeSpinning(icon) : icon,
             ),
-            child: _refreshing ? IdeSpinning(icon) : icon,
-          ),
-        );
-      },
-    ),
-  );
+          );
+        },
+      ),
+    );
+  }
 
   Widget _buildOptions() {
     final options = widget.options;
-    final grouped = _grouped;
+    final grouped = _grouped || _refreshHeading;
     final matching = _matching;
     final selected = _selectedIndex;
     const sides = EdgeInsets.symmetric(horizontal: _menuPadding);
@@ -1182,25 +1194,7 @@ class ComposerPickerState extends State<ComposerPicker> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget.onRefresh != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  if (widget.title case final title?)
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  const Spacer(),
-                  _refreshButton(),
-                ],
-              ),
-            )
-          else if (widget.title case final title?)
+          if (widget.title case final title?)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
               child: Text(
@@ -1287,10 +1281,15 @@ class _GroupHeading extends StatelessWidget {
     this.matches = const [],
     this.collapsed,
     this.onTap,
+    this.trailing,
   });
 
   final KernelOptionGroup? group;
   final bool first;
+
+  /// Before the chevron, given whether the heading is pointed at and its
+  /// color.
+  final Widget Function(bool hovered, Color color)? trailing;
 
   /// Where its label has what was searched.
   final List<int> matches;
@@ -1359,6 +1358,7 @@ class _GroupHeading extends StatelessWidget {
                     ],
                   ),
                 ),
+                ?trailing?.call(hovered, color),
                 // Collapsed, it says so; open, it shows only pointed at.
                 if (collapsed != null && (collapsed || hovered))
                   Icon(

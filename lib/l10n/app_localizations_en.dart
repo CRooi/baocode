@@ -2920,6 +2920,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get composerRefreshModels => 'Refresh Claude Code models';
 
   @override
+  String get chatCompacted => 'Conversation compacted';
+
+  @override
+  String get chatCompactedAuto => 'Conversation compacted automatically';
+
+  @override
   String composerRefreshModelsFailed(String error) {
     return 'Could not refresh Claude Code models: $error';
   }

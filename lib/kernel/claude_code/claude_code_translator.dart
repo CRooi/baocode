@@ -19,10 +19,18 @@ import 'turn_stats.dart';
 /// and block, tool use id, message uuid), so translating a message twice,
 /// e.g. streamed and then whole, lands on the same items.
 class ClaudeTranslator {
-  ClaudeTranslator({required this.emit, required this.nextSeq, this.goalSaid});
+  ClaudeTranslator({
+    required this.emit,
+    required this.nextSeq,
+    this.goalSaid,
+    this.compactionModel,
+  });
 
   final void Function(KernelEvent event) emit;
   final int Function() nextSeq;
+
+  /// The name of the model the conversation is compacted with now.
+  final String? Function()? compactionModel;
 
   /// Claude Code said something of the goal, live: how it stands is to be
   /// asked afresh (see claude_goal.dart).
@@ -37,6 +45,13 @@ class ClaudeTranslator {
 
   /// The turn changes belong to (the user message uuid that began it).
   String? turnId;
+
+  /// Since when the conversation has been compacting, live.
+  DateTime? _compactingSince;
+
+  /// The compaction last said done, until its summary comes (which says
+  /// what it wrote).
+  (String, NoticeItem)? _compacted;
 
   /// What the agent is busy with out of sight (see [ActivityReported]).
   KernelActivity? _activity;
@@ -811,6 +826,31 @@ class ClaudeTranslator {
       if (!replaying) goalSaid?.call();
       return;
     }
+    // The summary the compaction just made: what it wrote.
+    if (_compacted case (final id, final notice)
+        when message['isSynthetic'] == true ||
+            message['isCompactSummary'] == true) {
+      _compacted = null;
+      final done = notice.compaction!;
+      _put(
+        id,
+        NoticeItem(
+          notice.kind,
+          notice.text,
+          compaction: Compaction(
+            auto: done.auto,
+            before: done.before,
+            after: done.after,
+            model: done.model,
+            duration: done.duration,
+            tokens: OutputMeter.estimateTokens(text).round(),
+          ),
+        ),
+      );
+      return;
+    }
+    // Not after it: no summary to wait for.
+    _compacted = null;
     if (message['isMeta'] == true) return;
     final id = message['uuid'] as String?;
     if (id == null) return;
@@ -1569,6 +1609,7 @@ class ClaudeTranslator {
           case 'requesting' when _activity?.kind != KernelActivityKind.waiting:
             _report(_waiting());
           case 'compacting':
+            if (!replaying) _compactingSince ??= DateTime.now();
             _report(
               KernelActivity(KernelActivityKind.compacting, DateTime.now()),
             );
@@ -1580,19 +1621,37 @@ class ClaudeTranslator {
         final meta = _map(message['compact_metadata']);
         final before = claudeInt(meta['pre_tokens']);
         final after = claudeInt(meta['post_tokens']);
-        _put(
-          uuid,
-          NoticeItem(
-            NoticeKind.compaction,
-            [
-              meta['trigger'] == 'auto'
-                  ? 'Conversation compacted automatically'
-                  : 'Conversation compacted',
-              if (before != null)
-                '${_tokens(before)}${after == null ? '' : ' → ${_tokens(after)}'} tokens',
-            ].join(' · '),
+        final auto = meta['trigger'] == 'auto';
+        final since = _compactingSince;
+        _compactingSince = null;
+        final duration = switch (claudeInt(meta['duration_ms'])) {
+          final ms? => Duration(milliseconds: ms),
+          null when since != null && !replaying => DateTime.now().difference(
+            since,
+          ),
+          null => null,
+        };
+        final notice = NoticeItem(
+          NoticeKind.compaction,
+          [
+            auto
+                ? 'Conversation compacted automatically'
+                : 'Conversation compacted',
+            if (before != null)
+              '${_tokens(before)}${after == null ? '' : ' → ${_tokens(after)}'} tokens',
+          ].join(', '),
+          compaction: Compaction(
+            auto: auto,
+            before: before,
+            after: after,
+            // Known only as it happens: a kept one's model may have been
+            // another.
+            model: replaying ? null : compactionModel?.call(),
+            duration: duration,
           ),
         );
+        _compacted = (uuid, notice);
+        _put(uuid, notice);
       case 'api_retry' when !replaying:
         final attempt = message['attempt'];
         final max = message['max_retries'];

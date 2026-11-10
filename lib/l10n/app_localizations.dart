@@ -5078,6 +5078,18 @@ abstract class AppLocalizations {
   /// **'Refresh Claude Code models'**
   String get composerRefreshModels;
 
+  /// No description provided for @chatCompacted.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation compacted'**
+  String get chatCompacted;
+
+  /// No description provided for @chatCompactedAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation compacted automatically'**
+  String get chatCompactedAuto;
+
   /// No description provided for @composerRefreshModelsFailed.
   ///
   /// In en, this message translates to:

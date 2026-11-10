@@ -2816,6 +2816,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get composerRefreshModels => '刷新 Claude Code 模型';
 
   @override
+  String get chatCompacted => '已压缩对话';
+
+  @override
+  String get chatCompactedAuto => '已自动压缩对话';
+
+  @override
   String composerRefreshModelsFailed(String error) {
     return '无法刷新 Claude Code 模型：$error';
   }

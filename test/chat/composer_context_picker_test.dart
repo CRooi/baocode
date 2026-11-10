@@ -105,6 +105,30 @@ void main() {
     return (session: session, kernel: kernel, cli: cli);
   }
 
+  test('the simple picker shows the newest of each family, over an alias '
+      'that names an older one', () {
+    const group = KernelOptionGroup(builtinProviderId, 'Claude Code');
+    KernelOption option(String id, String label) =>
+        KernelOption(id, label, Icons.bolt_rounded, '', group: group);
+    final newest = SessionModelPicker.newestOfFamilies([
+      option('default', 'Default'),
+      option('opus', 'Opus 5.5'),
+      option('sonnet', 'Sonnet 5.5'),
+      option('fable', 'Fable 5.1'),
+      option('haiku', 'Haiku 5.5'),
+      option('claude-fable-5-2', 'Fable 5.2'),
+      option('claude-opus-5', 'Opus 5'),
+      option('claude-opus-4-8', 'Opus 4.8'),
+      option('claude-sonnet-4-6', 'Sonnet 4.6'),
+    ]);
+    expect(newest.map((o) => o.label), [
+      'Opus 5.5',
+      'Sonnet 5.5',
+      'Fable 5.2',
+      'Haiku 5.5',
+    ]);
+  });
+
   testWidgets(
     'model refresh updates the open picker without restarting its session',
     (tester) async {
@@ -124,6 +148,13 @@ void main() {
       final wasStreaming = session.isStreaming;
       await tester.tap(find.byType(SessionModelPicker));
       await tester.pump(const Duration(milliseconds: 300));
+      // Shown beside the Claude Code heading only while it is pointed at.
+      expect(find.byTooltip('Refresh Claude Code models'), findsNothing);
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      addTearDown(mouse.removePointer);
+      await mouse.moveTo(tester.getCenter(find.text('Claude Code').last));
+      await tester.pump();
       await tester.tap(find.byTooltip('Refresh Claude Code models'));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pump();
@@ -137,6 +168,8 @@ void main() {
         contains('Opus Refreshed'),
       );
       expect(find.text('Opus Refreshed'), findsWidgets);
+      await mouse.moveTo(tester.getCenter(find.text('Claude Code').last));
+      await tester.pump();
       expect(find.byTooltip('Refresh Claude Code models'), findsOneWidget);
     },
   );

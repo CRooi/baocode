@@ -830,6 +830,8 @@
   "composerSettingContextLength": "上下文长度",
   "composerSettingEffort": "推理强度",
   "composerRefreshModels": "刷新 Claude Code 模型",
+  "chatCompacted": "已压缩对话",
+  "chatCompactedAuto": "已自动压缩对话",
   "composerRefreshModelsFailed": "无法刷新 Claude Code 模型：{error}",
   "composerMoreModels": "更多模型",
   "composerNoResults": "无结果",

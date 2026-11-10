@@ -142,6 +142,7 @@ class ClaudeCodeKernel
       emit: emit,
       nextSeq: () => nextSeq,
       goalSaid: _syncGoal,
+      compactionModel: () => _compactionModelName,
     );
     _providers.addListener(_providersChanged);
     ExtensionSwitches.changes?.addListener(_applySwitches);
@@ -3144,6 +3145,19 @@ class ClaudeCodeKernel
       _launchedModel = null;
       release();
     }
+  }
+
+  /// The name of the model the conversation is compacted with: the one
+  /// picked for compactions ([ModelProviders.compaction]) on an upstream's
+  /// model, which the proxy sends them to; else the session's own.
+  String? get _compactionModelName {
+    if (parseModelRef(_model) != null && _providers.compaction != null) {
+      if (_providers.resolve(_providers.compactionModel) case (_, final info)) {
+        return info.displayName;
+      }
+    }
+    final selected = model.selected;
+    return model.options.where((o) => o.id == selected).firstOrNull?.label;
   }
 
   /// The heading Claude Code's own models are listed under.

@@ -1826,6 +1826,8 @@
     "description": "Heading of the model's reasoning effort choices."
   },
   "composerRefreshModels": "Refresh Claude Code models",
+  "chatCompacted": "Conversation compacted",
+  "chatCompactedAuto": "Conversation compacted automatically",
   "composerRefreshModelsFailed": "Could not refresh Claude Code models: {error}",
   "@composerRefreshModelsFailed": {
     "placeholders": {"error": {"type": "String"}}

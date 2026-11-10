@@ -165,9 +165,10 @@ class SessionModelPicker extends StatelessWidget {
   static const _contextPrefix = '\u0000context:';
 
   /// Of Claude Code's own models (the CLI's), the newest of each of
-  /// [_families], in that order: the family's alias (`opus`) first, else
-  /// the one named for it with the highest version. None where the CLI's
-  /// models are not known yet.
+  /// [_families], in that order: the one of it with the highest version
+  /// (as its name shows it, "Fable 5.2", else its id), the family's alias
+  /// (`opus`) of those as new. None where the CLI's models are not known
+  /// yet.
   @visibleForTesting
   static List<KernelOption> newestOfFamilies(List<KernelOption> options) {
     final builtin = [
@@ -175,17 +176,16 @@ class SessionModelPicker extends StatelessWidget {
         if (option.group?.id == builtinProviderId && option.id != 'default')
           option,
     ];
-    int version(KernelOption option) {
-      final digits = RegExp(r'\d+').allMatches(option.id);
-      var value = 0;
-      for (final match in digits.take(3)) {
-        value = value * 1000 + int.parse(match[0]!);
-      }
-      return value;
+    int? versionIn(String text) {
+      final match = RegExp(r'(\d+)(?:[.-](\d+))?').firstMatch(text);
+      if (match == null) return null;
+      return int.parse(match[1]!) * 1000 + int.parse(match[2] ?? '0');
     }
 
+    int version(KernelOption option) =>
+        versionIn(option.label) ?? versionIn(option.id) ?? 0;
+
     KernelOption? newest(String family) =>
-        builtin.where((o) => o.id == family).firstOrNull ??
         (builtin
                 .where(
                   (o) =>
@@ -193,7 +193,11 @@ class SessionModelPicker extends StatelessWidget {
                       o.label.toLowerCase().contains(family),
                 )
                 .toList()
-              ..sort((a, b) => version(b) - version(a)))
+              ..sort((a, b) {
+                final newer = version(b) - version(a);
+                if (newer != 0) return newer;
+                return (b.id == family ? 1 : 0) - (a.id == family ? 1 : 0);
+              }))
             .firstOrNull;
 
     return [for (final family in _families) ?newest(family)];
@@ -265,6 +269,7 @@ class SessionModelPicker extends StatelessWidget {
     return ComposerPicker(
       key: pickerKey,
       onRefresh: session.canRefreshModels ? session.refreshModels : null,
+      refreshGroup: builtinProviderId,
       refreshTooltip: l10n.composerRefreshModels,
       refreshFailed: l10n.composerRefreshModelsFailed,
       options: [
@@ -336,6 +341,7 @@ class SessionModelPicker extends StatelessWidget {
     return ComposerPicker(
       key: pickerKey,
       onRefresh: session.canRefreshModels ? session.refreshModels : null,
+      refreshGroup: builtinProviderId,
       refreshTooltip: l10n.composerRefreshModels,
       refreshFailed: l10n.composerRefreshModelsFailed,
       options: model.options,

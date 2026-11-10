@@ -192,7 +192,20 @@ abstract final class ChatCodec {
       'result': ?item.result,
       if (item.background) 'background': true,
     },
-    NoticeItem() => {'t': 'notice', 'kind': item.kind.name, 'text': item.text},
+    NoticeItem() => {
+      't': 'notice',
+      'kind': item.kind.name,
+      'text': item.text,
+      if (item.compaction case final compaction?)
+        'compaction': {
+          'auto': compaction.auto,
+          'before': ?compaction.before,
+          'after': ?compaction.after,
+          'model': ?compaction.model,
+          'ms': ?compaction.duration?.inMilliseconds,
+          'tokens': ?compaction.tokens,
+        },
+    },
     PlanItem() => {
       't': 'plan',
       'path': item.path,
@@ -326,6 +339,20 @@ abstract final class ChatCodec {
       'notice' => NoticeItem(
         named(NoticeKind.values, 'kind', NoticeKind.info),
         text('text'),
+        compaction: switch (json['compaction']) {
+          final Map<String, Object?> compaction => Compaction(
+            auto: compaction['auto'] == true,
+            before: (compaction['before'] as num?)?.toInt(),
+            after: (compaction['after'] as num?)?.toInt(),
+            model: compaction['model'] as String?,
+            duration: switch (compaction['ms']) {
+              final num ms => Duration(milliseconds: ms.toInt()),
+              _ => null,
+            },
+            tokens: (compaction['tokens'] as num?)?.toInt(),
+          ),
+          _ => null,
+        },
       ),
       'plan' => PlanItem(
         path: text('path'),

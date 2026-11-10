@@ -426,10 +426,44 @@ class PlanItem extends ChatItem {
 
 /// A line from the runtime, not the agent: shown apart from its messages.
 class NoticeItem extends ChatItem {
-  const NoticeItem(this.kind, this.text);
+  const NoticeItem(this.kind, this.text, {this.compaction});
 
   final NoticeKind kind;
+
+  /// As it reads in English, where nothing more is known of it.
   final String text;
+
+  /// What a [NoticeKind.compaction] did, shown in the app's language.
+  final Compaction? compaction;
+}
+
+/// A compaction of the conversation: [auto]matic, or asked for; the
+/// context's tokens [before] and [after]; the [model] that summed it up,
+/// by name, the time it took and the [tokens] of the summary it wrote,
+/// where they are known.
+class Compaction {
+  const Compaction({
+    required this.auto,
+    this.before,
+    this.after,
+    this.model,
+    this.duration,
+    this.tokens,
+  });
+
+  final bool auto;
+  final int? before;
+  final int? after;
+  final String? model;
+  final Duration? duration;
+  final int? tokens;
+
+  /// The summary's tokens over the time it took.
+  double? get tokensPerSecond => switch ((tokens, duration)) {
+    (final tokens?, final duration?) when duration.inMilliseconds > 0 =>
+      tokens / (duration.inMilliseconds / 1000),
+    _ => null,
+  };
 }
 
 enum CommandStatus { running, succeeded, failed }
